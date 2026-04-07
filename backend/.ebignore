@@ -1,0 +1,16 @@
+# EB uploads only what's needed to run the app.
+# node_modules are installed by EB during deployment via `npm ci`.
+
+node_modules/
+src/
+test/
+coverage/
+*.sqlite
+*.log
+.env
+.env.*
+!.env.example
+tsconfig*.json
+eslint.config.mjs
+nest-cli.json
+README.md
