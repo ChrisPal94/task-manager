@@ -12,13 +12,20 @@ export class TasksService {
     private readonly tasksRepository: Repository<Task>,
   ) {}
 
-  findAll(ownerId: string, status?: TaskStatus): Promise<Task[]> {
+  findAll(
+    ownerId: string,
+    status?: TaskStatus,
+    page = 1,
+    limit = 50,
+  ): Promise<Task[]> {
     const where: FindOptionsWhere<Task> = { owner_id: ownerId };
     if (status) where.status = status;
 
     return this.tasksRepository.find({
       where,
       order: { created_at: 'DESC' },
+      take: limit,
+      skip: (page - 1) * limit,
     });
   }
 
@@ -39,7 +46,7 @@ export class TasksService {
 
   async update(id: string, dto: UpdateTaskDto, ownerId: string): Promise<Task> {
     const task = await this.findOne(id, ownerId);
-    Object.assign(task, dto);
+    this.tasksRepository.merge(task, dto);
     return this.tasksRepository.save(task);
   }
 

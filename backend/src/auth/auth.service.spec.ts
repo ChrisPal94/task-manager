@@ -57,6 +57,7 @@ describe('AuthService', () => {
         access_token: 'signed-token',
         user: { id: mockUser.id, name: mockUser.name, email: mockUser.email },
       })
+      expect(bcrypt.compare).toHaveBeenCalledWith('Mario123!', mockUser.password)
       expect(mockJwtService.sign).toHaveBeenCalledWith({
         sub: mockUser.id,
         email: mockUser.email,

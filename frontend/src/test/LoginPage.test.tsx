@@ -7,9 +7,10 @@ import LoginPage from '@/pages/LoginPage'
 const mockLogin = vi.fn()
 const mockSetLocale = vi.fn()
 const mockNavigate = vi.fn()
+let mockIsLoading = false
 
 vi.mock('@/context/AuthContext', () => ({
-  useAuth: () => ({ login: mockLogin, isLoading: false }),
+  useAuth: () => ({ login: mockLogin, isLoading: mockIsLoading }),
 }))
 
 vi.mock('@/context/LangContext', () => ({
@@ -43,6 +44,7 @@ function renderLogin() {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  mockIsLoading = false
 })
 
 describe('LoginPage', () => {
@@ -100,5 +102,11 @@ describe('LoginPage', () => {
     renderLogin()
     await userEvent.click(screen.getByRole('button', { name: 'ES' }))
     expect(mockSetLocale).toHaveBeenCalledWith('es')
+  })
+
+  it('disables the submit button while login is in progress', () => {
+    mockIsLoading = true
+    renderLogin()
+    expect(screen.getByRole('button', { name: /sign in/i })).toBeDisabled()
   })
 })

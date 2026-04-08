@@ -51,7 +51,7 @@ describe('TasksController', () => {
 
       const result = await controller.findAll(mockUser, {})
 
-      expect(mockTasksService.findAll).toHaveBeenCalledWith(OWNER_ID, undefined)
+      expect(mockTasksService.findAll).toHaveBeenCalledWith(OWNER_ID, undefined, undefined, undefined)
       expect(result).toEqual(tasks)
     })
 
@@ -60,7 +60,15 @@ describe('TasksController', () => {
 
       await controller.findAll(mockUser, { status: TaskStatus.COMPLETED })
 
-      expect(mockTasksService.findAll).toHaveBeenCalledWith(OWNER_ID, TaskStatus.COMPLETED)
+      expect(mockTasksService.findAll).toHaveBeenCalledWith(OWNER_ID, TaskStatus.COMPLETED, undefined, undefined)
+    })
+
+    it('forwards pagination params to the service', async () => {
+      mockTasksService.findAll.mockResolvedValue([])
+
+      await controller.findAll(mockUser, { page: 2, limit: 10 })
+
+      expect(mockTasksService.findAll).toHaveBeenCalledWith(OWNER_ID, undefined, 2, 10)
     })
   })
 

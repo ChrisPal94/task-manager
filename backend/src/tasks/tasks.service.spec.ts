@@ -39,6 +39,7 @@ describe('TasksService', () => {
             create: jest.fn(),
             save: jest.fn(),
             remove: jest.fn(),
+            merge: jest.fn().mockImplementation((entity: Task, dto: Partial<Task>) => Object.assign(entity, dto)),
           },
         },
       ],
@@ -59,6 +60,8 @@ describe('TasksService', () => {
       expect(repo.find).toHaveBeenCalledWith({
         where: { owner_id: OWNER_ID },
         order: { created_at: 'DESC' },
+        take: 50,
+        skip: 0,
       })
       expect(result).toEqual(tasks)
     })
@@ -72,6 +75,8 @@ describe('TasksService', () => {
       expect(repo.find).toHaveBeenCalledWith({
         where: { owner_id: OTHER_OWNER_ID },
         order: { created_at: 'DESC' },
+        take: 50,
+        skip: 0,
       })
     })
 
@@ -83,6 +88,21 @@ describe('TasksService', () => {
       expect(repo.find).toHaveBeenCalledWith({
         where: { owner_id: OWNER_ID, status: TaskStatus.COMPLETED },
         order: { created_at: 'DESC' },
+        take: 50,
+        skip: 0,
+      })
+    })
+
+    it('paginates with custom page and limit', async () => {
+      repo.find.mockResolvedValue([])
+
+      await service.findAll(OWNER_ID, undefined, 3, 10)
+
+      expect(repo.find).toHaveBeenCalledWith({
+        where: { owner_id: OWNER_ID },
+        order: { created_at: 'DESC' },
+        take: 10,
+        skip: 20,
       })
     })
 

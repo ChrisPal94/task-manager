@@ -1,6 +1,8 @@
 import axios from 'axios'
 import { storage } from '@/utils'
 
+export const AUTH_EXPIRED_EVENT = 'auth:expired'
+
 export const http = axios.create({
   baseURL: '/api',
   headers: { 'Content-Type': 'application/json' },
@@ -22,7 +24,7 @@ http.interceptors.response.use(
       !window.location.pathname.includes('/login')
     ) {
       storage.clear()
-      window.location.replace('/login')
+      window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT))
     }
     return Promise.reject(error)
   },
