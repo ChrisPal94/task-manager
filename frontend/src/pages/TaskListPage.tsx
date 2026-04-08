@@ -1,24 +1,21 @@
 import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
+import { useLang } from '@/context/LangContext'
 import { useTasksQuery, useDeleteTask } from '@/hooks/useTasks'
 import { Badge, Button, Spinner, Modal } from '@/components/ui'
-import {
-  STATUS_STYLES, STATUS_LABELS,
-  PRIORITY_STYLES, PRIORITY_LABELS,
-  formatDate, getApiErrorMessage,
-} from '@/utils'
+import { STATUS_STYLES, PRIORITY_STYLES, formatDate, getApiErrorMessage } from '@/utils'
 import type { Task, TaskStatus } from '@/types'
+import type { Locale } from '@/i18n/translations'
 import TaskForm from './TaskForm'
 
-const FILTERS: { label: string; value: TaskStatus | 'all' }[] = [
-  { label: 'All',         value: 'all' },
-  { label: 'Pending',     value: 'pending' },
-  { label: 'In Progress', value: 'in_progress' },
-  { label: 'Completed',   value: 'completed' },
+const LOCALES: { value: Locale; label: string }[] = [
+  { value: 'en', label: 'EN' },
+  { value: 'es', label: 'ES' },
 ]
 
 export default function TaskListPage() {
   const { user, logout } = useAuth()
+  const { t, locale, setLocale } = useLang()
   const [activeFilter, setActiveFilter] = useState<TaskStatus | 'all'>('all')
 
   const { data: tasks = [], isLoading, isError, error } = useTasksQuery(
@@ -35,9 +32,31 @@ export default function TaskListPage() {
   const closeModal = () => { setModalOpen(false); setEditingTask(null) }
 
   const handleDelete = (id: string) => {
-    if (!confirm('Delete this task?')) return
+    if (!confirm(t('deleteConfirm'))) return
     deleteMutation.mutate(id)
   }
+
+  const FILTERS: { label: string; value: TaskStatus | 'all' }[] = [
+    { label: t('filterAll'),        value: 'all' },
+    { label: t('filterPending'),    value: 'pending' },
+    { label: t('filterInProgress'), value: 'in_progress' },
+    { label: t('filterCompleted'),  value: 'completed' },
+  ]
+
+  const STATUS_LABELS = {
+    pending:     t('statusPending'),
+    in_progress: t('statusInProgress'),
+    completed:   t('statusCompleted'),
+  }
+
+  const PRIORITY_LABELS = {
+    low:    t('priorityLow'),
+    medium: t('priorityMedium'),
+    high:   t('priorityHigh'),
+  }
+
+  const taskCount = tasks.length
+  const taskWord  = taskCount === 1 ? t('task') : t('tasks')
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -48,8 +67,23 @@ export default function TaskListPage() {
             <span className="font-semibold text-gray-900">Task Manager</span>
           </div>
           <div className="flex items-center gap-3">
+            <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs">
+              {LOCALES.map(({ value, label }) => (
+                <button
+                  key={value}
+                  onClick={() => setLocale(value)}
+                  className={`px-2.5 py-1 font-medium transition-colors ${
+                    locale === value
+                      ? 'bg-brand-600 text-white'
+                      : 'text-gray-500 hover:bg-gray-50'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
             <span className="hidden sm:block text-sm text-gray-500">{user?.name}</span>
-            <Button variant="ghost" size="sm" onClick={logout}>Sign out</Button>
+            <Button variant="ghost" size="sm" onClick={logout}>{t('signOut')}</Button>
           </div>
         </div>
       </header>
@@ -57,14 +91,14 @@ export default function TaskListPage() {
       <main className="mx-auto max-w-5xl px-4 sm:px-6 py-8">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">My Tasks</h1>
-            <p className="text-sm text-gray-500 mt-0.5">{tasks.length} task{tasks.length !== 1 ? 's' : ''}</p>
+            <h1 className="text-xl font-bold text-gray-900">{t('myTasks')}</h1>
+            <p className="text-sm text-gray-500 mt-0.5">{taskCount} {taskWord}</p>
           </div>
           <Button onClick={openCreate}>
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-            New Task
+            {t('newTask')}
           </Button>
         </div>
 
@@ -99,8 +133,8 @@ export default function TaskListPage() {
         ) : tasks.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="text-4xl mb-3">📋</div>
-            <p className="font-medium text-gray-700">No tasks yet</p>
-            <p className="text-sm text-gray-400 mt-1">Create your first task to get started</p>
+            <p className="font-medium text-gray-700">{t('noTasksTitle')}</p>
+            <p className="text-sm text-gray-400 mt-1">{t('noTasksSubtitle')}</p>
           </div>
         ) : (
           <ul className="space-y-3">
@@ -118,19 +152,19 @@ export default function TaskListPage() {
                     <Badge label={STATUS_LABELS[task.status]}     className={STATUS_STYLES[task.status]} />
                     <Badge label={PRIORITY_LABELS[task.priority]} className={PRIORITY_STYLES[task.priority]} />
                     {task.due_date && (
-                      <span className="text-xs text-gray-400">Due {formatDate(task.due_date)}</span>
+                      <span className="text-xs text-gray-400">{t('due')} {formatDate(task.due_date)}</span>
                     )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <Button variant="secondary" size="sm" onClick={() => openEdit(task)}>Edit</Button>
+                  <Button variant="secondary" size="sm" onClick={() => openEdit(task)}>{t('edit')}</Button>
                   <Button
                     variant="danger"
                     size="sm"
                     isLoading={deleteMutation.isPending && deleteMutation.variables === task.id}
                     onClick={() => handleDelete(task.id)}
                   >
-                    Delete
+                    {t('delete')}
                   </Button>
                 </div>
               </li>
@@ -142,12 +176,9 @@ export default function TaskListPage() {
       <Modal
         isOpen={modalOpen}
         onClose={closeModal}
-        title={editingTask ? 'Edit Task' : 'New Task'}
+        title={editingTask ? t('editTask') : t('createTask')}
       >
-        <TaskForm
-          task={editingTask}
-          onClose={closeModal}
-        />
+        <TaskForm task={editingTask} onClose={closeModal} />
       </Modal>
     </div>
   )

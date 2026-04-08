@@ -8,22 +8,10 @@ export const STATUS_STYLES: Record<TaskStatus, string> = {
   completed:   'bg-green-100  text-green-800',
 }
 
-export const STATUS_LABELS: Record<TaskStatus, string> = {
-  pending:     'Pending',
-  in_progress: 'In Progress',
-  completed:   'Completed',
-}
-
 export const PRIORITY_STYLES: Record<TaskPriority, string> = {
   low:    'bg-gray-100  text-gray-700',
   medium: 'bg-orange-100 text-orange-700',
   high:   'bg-red-100   text-red-700',
-}
-
-export const PRIORITY_LABELS: Record<TaskPriority, string> = {
-  low:    'Low',
-  medium: 'Medium',
-  high:   'High',
 }
 
 export function formatDate(value: string | null | undefined): string {
