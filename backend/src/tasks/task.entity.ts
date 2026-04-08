@@ -30,7 +30,7 @@ export class Task {
   title!: string;
 
   @Column({ nullable: true, type: 'text' })
-  description!: string;
+  description!: string | null;
 
   @Column({
     type: 'varchar',
@@ -45,7 +45,7 @@ export class Task {
   priority!: TaskPriority;
 
   @Column({ nullable: true, type: 'date' })
-  due_date!: string;
+  due_date!: string | null;
 
   @CreateDateColumn()
   created_at!: Date;

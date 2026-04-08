@@ -16,7 +16,8 @@ export const PRIORITY_STYLES: Record<TaskPriority, string> = {
 
 export function formatDate(value: string | null | undefined): string {
   if (!value) return '—'
-  return new Date(value).toLocaleDateString('en-US', {
+  const [year, month, day] = value.slice(0, 10).split('-').map(Number)
+  return new Date(year, month - 1, day).toLocaleDateString('en-US', {
     month: 'short',
     day: '2-digit',
     year: 'numeric',
