@@ -15,9 +15,9 @@ export default function LoginPage() {
   const { t, locale, setLocale } = useLang()
   const navigate = useNavigate()
 
-  const [email, setEmail]       = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError]       = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -40,9 +40,7 @@ export default function LoginPage() {
                 key={value}
                 onClick={() => setLocale(value)}
                 className={`px-3 py-1.5 font-medium transition-colors ${
-                  locale === value
-                    ? 'bg-brand-600 text-white'
-                    : 'text-gray-500 hover:bg-gray-50'
+                  locale === value ? 'bg-brand-600 text-white' : 'text-gray-500 hover:bg-gray-50'
                 }`}
               >
                 {label}
@@ -60,7 +58,13 @@ export default function LoginPage() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-          <form onSubmit={(e) => { void handleSubmit(e) }} noValidate className="space-y-5">
+          <form
+            onSubmit={(e) => {
+              void handleSubmit(e)
+            }}
+            noValidate
+            className="space-y-5"
+          >
             <Input
               label={t('email')}
               type="email"

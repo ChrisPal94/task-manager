@@ -24,15 +24,9 @@ export function LangProvider({ children }: { children: React.ReactNode }) {
     setLocaleState(next)
   }, [])
 
-  const t = useCallback(
-    (key: TranslationKey) => translations[locale][key],
-    [locale],
-  )
+  const t = useCallback((key: TranslationKey) => translations[locale][key], [locale])
 
-  const value = useMemo<LangContextValue>(
-    () => ({ locale, setLocale, t }),
-    [locale, setLocale, t],
-  )
+  const value = useMemo<LangContextValue>(() => ({ locale, setLocale, t }), [locale, setLocale, t])
 
   return <LangContext.Provider value={value}>{children}</LangContext.Provider>
 }

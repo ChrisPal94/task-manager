@@ -14,12 +14,12 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
   const { t } = useLang()
   const isEditing = !!task
 
-  const [title, setTitle]             = useState(task?.title ?? '')
+  const [title, setTitle] = useState(task?.title ?? '')
   const [description, setDescription] = useState(task?.description ?? '')
-  const [status, setStatus]           = useState<TaskStatus>(task?.status ?? 'pending')
-  const [priority, setPriority]       = useState<TaskPriority>(task?.priority ?? 'medium')
-  const [dueDate, setDueDate]         = useState(toDateInputValue(task?.due_date))
-  const [error, setError]             = useState<string | null>(null)
+  const [status, setStatus] = useState<TaskStatus>(task?.status ?? 'pending')
+  const [priority, setPriority] = useState<TaskPriority>(task?.priority ?? 'medium')
+  const [dueDate, setDueDate] = useState(toDateInputValue(task?.due_date))
+  const [error, setError] = useState<string | null>(null)
 
   const createTask = useCreateTask()
   const updateTask = useUpdateTask()
@@ -27,28 +27,31 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
   const isPending = createTask.isPending || updateTask.isPending
 
   const STATUS_OPTIONS = [
-    { value: 'pending',     label: t('statusPending') },
+    { value: 'pending', label: t('statusPending') },
     { value: 'in_progress', label: t('statusInProgress') },
-    { value: 'completed',   label: t('statusCompleted') },
+    { value: 'completed', label: t('statusCompleted') },
   ]
 
   const PRIORITY_OPTIONS = [
-    { value: 'low',    label: t('priorityLow') },
+    { value: 'low', label: t('priorityLow') },
     { value: 'medium', label: t('priorityMedium') },
-    { value: 'high',   label: t('priorityHigh') },
+    { value: 'high', label: t('priorityHigh') },
   ]
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!title.trim()) { setError(t('titleRequired')); return }
+    if (!title.trim()) {
+      setError(t('titleRequired'))
+      return
+    }
     setError(null)
 
     const payload = {
-      title:       title.trim(),
+      title: title.trim(),
       description: description.trim() || undefined,
       status,
       priority,
-      due_date:    dueDate || undefined,
+      due_date: dueDate || undefined,
     }
 
     try {
@@ -64,7 +67,13 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
   }
 
   return (
-    <form onSubmit={(e) => { void handleSubmit(e) }} noValidate className="space-y-4">
+    <form
+      onSubmit={(e) => {
+        void handleSubmit(e)
+      }}
+      noValidate
+      className="space-y-4"
+    >
       <Input
         label={t('titleLabel')}
         placeholder={t('titlePlaceholder')}

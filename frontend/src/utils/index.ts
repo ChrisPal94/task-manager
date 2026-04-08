@@ -3,23 +3,23 @@ import { twMerge } from 'tailwind-merge'
 import type { TaskPriority, TaskStatus } from '@/types'
 
 export const STATUS_STYLES: Record<TaskStatus, string> = {
-  pending:     'bg-yellow-100 text-yellow-800',
+  pending: 'bg-yellow-100 text-yellow-800',
   in_progress: 'bg-blue-100   text-blue-800',
-  completed:   'bg-green-100  text-green-800',
+  completed: 'bg-green-100  text-green-800',
 }
 
 export const PRIORITY_STYLES: Record<TaskPriority, string> = {
-  low:    'bg-gray-100  text-gray-700',
+  low: 'bg-gray-100  text-gray-700',
   medium: 'bg-orange-100 text-orange-700',
-  high:   'bg-red-100   text-red-700',
+  high: 'bg-red-100   text-red-700',
 }
 
 export function formatDate(value: string | null | undefined): string {
   if (!value) return '—'
   return new Date(value).toLocaleDateString('en-US', {
     month: 'short',
-    day:   '2-digit',
-    year:  'numeric',
+    day: '2-digit',
+    year: 'numeric',
   })
 }
 
@@ -33,7 +33,7 @@ export function truncate(str: string, maxLen = 80): string {
 }
 
 const TOKEN_KEY = 'tm_token'
-const USER_KEY  = 'tm_user'
+const USER_KEY = 'tm_user'
 
 export const storage = {
   getToken: (): string | null => localStorage.getItem(TOKEN_KEY),
@@ -43,7 +43,11 @@ export const storage = {
   getUser: <T>(): T | null => {
     const raw = localStorage.getItem(USER_KEY)
     if (!raw) return null
-    try { return JSON.parse(raw) as T } catch { return null }
+    try {
+      return JSON.parse(raw) as T
+    } catch {
+      return null
+    }
   },
   setUser: (user: unknown): void => localStorage.setItem(USER_KEY, JSON.stringify(user)),
   clearUser: (): void => localStorage.removeItem(USER_KEY),

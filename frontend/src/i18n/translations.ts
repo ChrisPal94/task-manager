@@ -56,7 +56,7 @@ export const translations = {
     due: 'Due',
     task: 'task',
     tasks: 'tasks',
-    unexpectedError: 'An unexpected error occurred'
+    unexpectedError: 'An unexpected error occurred',
   },
   es: {
     // Login
@@ -113,8 +113,8 @@ export const translations = {
     due: 'Vence',
     task: 'tarea',
     tasks: 'tareas',
-    unexpectedError: 'Ocurrió un error inesperado'
-  }
+    unexpectedError: 'Ocurrió un error inesperado',
+  },
 } satisfies Record<Locale, Record<string, string>>
 
 export type TranslationKey = keyof typeof translations.en
