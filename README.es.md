@@ -32,6 +32,10 @@ Una vez autenticado se ve la lista personal de tareas. Desde ahí se puede:
 
 Los datos de cada usuario están completamente aislados — solo se pueden ver y gestionar las tareas que pertenecen a la propia cuenta.
 
+### Vista de administrador
+
+La cuenta `admin` tiene una vista de solo lectura de todas las tareas del sistema. Cuando un administrador inicia sesión ve una lista **Todas las tareas** con una columna **Propietario** extra que muestra a quién pertenece cada tarea. El administrador dispone de dos filas de filtros: el filtro estándar por estado y una segunda fila para filtrar por prioridad (*Baja*, *Media*, *Alta*). Las acciones de crear, editar y eliminar no están disponibles para los administradores — su rol es estrictamente de observación.
+
 ---
 
 ## Stack tecnológico
@@ -57,7 +61,7 @@ La autenticación es sin estado: al hacer login el servidor devuelve un JWT firm
 
 Los cambios de esquema pasan por archivos de migración TypeORM versionados — `synchronize: false` está configurado en TypeORM para que el esquema de la base de datos nunca se modifique automáticamente en tiempo de ejecución.
 
-Cada consulta de tareas incluye una cláusula `WHERE owner_id = :userId` aplicada en la capa de servicio, por lo que no hay posibilidad de filtración de datos entre usuarios aunque un cliente envíe un ID de tarea falsificado.
+Cada consulta de tareas incluye una cláusula `WHERE owner_id = :userId` aplicada en la capa de servicio, por lo que no hay posibilidad de filtración de datos entre usuarios aunque un cliente envíe un ID de tarea falsificado. Los usuarios administradores omiten esta cláusula — el servicio detecta `role === 'admin'` y hace un `LEFT JOIN` con la tabla de usuarios para adjuntar el nombre del propietario a cada tarea.
 
 ### Frontend
 
@@ -157,11 +161,12 @@ El servidor de desarrollo de Vite hace proxy de todas las solicitudes `/api` a `
 
 ### Credenciales de demo
 
-| Nombre | Email                   | Contraseña  |
-|--------|-------------------------|-------------|
-| Mario  | mario@taskmanager.dev   | Mario123!   |
-| Luigi  | luigi@taskmanager.dev   | Luigi123!   |
-| Bowser | bowser@taskmanager.dev  | Bowser123!  |
+| Nombre | Email                   | Contraseña  | Rol   |
+|--------|-------------------------|-------------|-------|
+| Mario  | mario@taskmanager.dev   | Mario123!   | user  |
+| Luigi  | luigi@taskmanager.dev   | Luigi123!   | user  |
+| Bowser | bowser@taskmanager.dev  | Bowser123!  | user  |
+| Admin  | admin@taskmanager.dev   | Admin123!   | admin |
 
 ### Ejecutar tests
 
@@ -178,13 +183,15 @@ npm run test:coverage  # con reporte de cobertura
 
 Todos los endpoints de tareas requieren `Authorization: Bearer <token>`.
 
-| Método | Ruta                  | Descripción                               |
-|--------|-----------------------|-------------------------------------------|
-| POST   | `/api/auth/login`     | Login — devuelve `access_token`           |
-| GET    | `/api/tasks`          | Listar tareas (opcional `?status=`)       |
-| POST   | `/api/tasks`          | Crear una tarea                           |
-| PUT    | `/api/tasks/:id`      | Actualizar una tarea                      |
-| DELETE | `/api/tasks/:id`      | Eliminar una tarea                        |
+| Método | Ruta                  | Descripción                                                       |
+|--------|-----------------------|-------------------------------------------------------------------|
+| POST   | `/api/auth/login`     | Login — devuelve `access_token`                                   |
+| GET    | `/api/tasks`          | Listar tareas (opcionales `?status=` y/o `?priority=`)            |
+| POST   | `/api/tasks`          | Crear una tarea                                                   |
+| PUT    | `/api/tasks/:id`      | Actualizar una tarea                                              |
+| DELETE | `/api/tasks/:id`      | Eliminar una tarea                                                |
+
+> Los administradores que llaman a `GET /api/tasks` reciben todas las tareas sin importar el propietario. Los usuarios regulares siempre reciben solo sus propias tareas.
 
 **Respuesta de login:**
 ```json
@@ -193,7 +200,8 @@ Todos los endpoints de tareas requieren `Authorization: Bearer <token>`.
   "user": {
     "id": "uuid",
     "name": "Mario",
-    "email": "mario@taskmanager.dev"
+    "email": "mario@taskmanager.dev",
+    "role": "user | admin"
   }
 }
 ```
@@ -208,10 +216,13 @@ Todos los endpoints de tareas requieren `Authorization: Bearer <token>`.
   "priority": "low | medium | high",
   "due_date": "2026-04-30T00:00:00.000Z | null",
   "owner_id": "uuid",
+  "owner": { "id": "uuid", "name": "Mario", "email": "mario@taskmanager.dev" },
   "created_at": "...",
   "updated_at": "..."
 }
 ```
+
+> `owner` solo se incluye en las respuestas de administrador. Las respuestas de usuarios regulares no lo incluyen.
 
 ---
 
