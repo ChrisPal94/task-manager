@@ -1,52 +1,131 @@
 # Task Manager
 
-A fullstack task management application built with NestJS, React, and SQLite. Supports authentication, per-user task isolation, status/priority filtering, and a clean REST API.
+A fullstack task management application where each user has their own private workspace to create, organize, and track tasks. Built as a technical assessment to demonstrate production-level decisions across the full stack — from API design to cloud deployment.
 
-## Tech Stack
+---
 
-| Layer     | Technology                                       |
-|-----------|--------------------------------------------------|
-| Frontend  | React 18, TypeScript, Vite 5, Tailwind CSS v3    |
-| Backend   | NestJS, TypeScript, TypeORM, Passport JWT        |
-| Database  | SQLite 3 via `better-sqlite3`                    |
-| Auth      | JWT (HS256), bcrypt password hashing             |
+## Table of Contents
 
-## Features
+- [How it works (user perspective)](#how-it-works-user-perspective)
+- [Tech stack](#tech-stack)
+- [Architecture overview](#architecture-overview)
+- [Project structure](#project-structure)
+- [Running locally](#running-locally)
+- [API reference](#api-reference)
+- [Deployment on AWS](#deployment-on-aws)
 
-- Email + password login with JWT
-- Per-user task isolation (tasks are private to each user)
-- Full CRUD: create, read, update, delete tasks
-- Filter tasks by status (`pending`, `in_progress`, `completed`)
-- Filter tasks by priority (`low`, `medium`, `high`)
-- Optional due date per task
-- Request cancellation via `AbortController` — no stale fetch race conditions
-- Strict TypeScript throughout (`strict: true`)
+---
 
-## Project Structure
+## How it works (user perspective)
+
+When you open the app you land on the login page. There's no registration flow — accounts are pre-seeded (see demo credentials below). You enter your email and password, hit **Sign in**, and you're in.
+
+Once authenticated you see your personal task list. From there you can:
+
+- **Create a task** by clicking the **New Task** button in the top right. A modal opens where you fill in the title (required), an optional description, status, priority, and an optional due date.
+- **Edit a task** by clicking the **Edit** button on any row. The same modal opens pre-filled with the task's current values.
+- **Delete a task** by clicking **Delete**. A confirmation prompt prevents accidental deletions.
+- **Filter tasks** using the pill buttons below the header — you can narrow the list to *Pending*, *In Progress*, or *Completed* tasks. Switching filters is instant; the list updates without a full page reload.
+- **Switch language** using the EN / ES toggle in the header. The app is fully translated into English and Spanish, and your preference is saved across sessions.
+
+Every user's data is completely isolated — you can only see and manage tasks that belong to your account.
+
+---
+
+## Tech stack
+
+| Layer       | Technology                                                         |
+|-------------|--------------------------------------------------------------------|
+| Frontend    | React 18, TypeScript, Vite 5, Tailwind CSS v3, React Query v5     |
+| Backend     | NestJS, TypeScript, TypeORM, Passport JWT                          |
+| Database    | SQLite 3 via `better-sqlite3`                                      |
+| Auth        | JWT (HS256), bcrypt password hashing                               |
+| Testing     | Vitest, React Testing Library                                      |
+| Cloud       | AWS Elastic Beanstalk (API), S3 + CloudFront (frontend)            |
+
+---
+
+## Architecture overview
+
+### Backend
+
+The API follows a layered architecture — controllers handle HTTP concerns, services own business logic, and TypeORM repositories handle persistence. Nothing leaks across layers.
+
+Authentication is stateless: on login the server returns a signed JWT (HS256, 7-day expiry) that the client stores in `localStorage` and attaches to every subsequent request via an `Authorization: Bearer` header. The NestJS JWT strategy validates the token and injects the user payload into the request context.
+
+Schema changes go through versioned TypeORM migration files — `synchronize: false` is set in the TypeORM config so the database schema is never modified automatically at runtime.
+
+Every task query includes a `WHERE owner_id = :userId` clause enforced at the service layer, so there's no possibility of cross-user data leakage even if a client sends a forged task ID.
+
+### Frontend
+
+State is split by concern:
+
+- `AuthContext` owns the authentication state (current user, login, logout). It reads the token and user from `localStorage` on startup so sessions survive page refreshes.
+- React Query owns all server state — task list, mutations (create, update, delete), caching, and background refetching. The cache has a 30-second stale time and refetches when the window regains focus.
+- `LangContext` owns the UI language. It reads the saved locale from `localStorage` and exposes a typed `t()` function that components call to get translated strings. No external i18n library — the dictionary is a plain typed object.
+
+Pages are thin coordinators. They wire context and hooks together but contain no business logic of their own.
+
+### Cloud (AWS)
+
+```
+                    ┌──────────────────────────┐
+                    │         Route 53          │
+                    │   (optional custom domain)│
+                    └───────────┬───────────────┘
+                                │
+              ┌─────────────────┴─────────────────┐
+              │                                   │
+   ┌──────────▼──────────┐           ┌────────────▼────────────┐
+   │     CloudFront      │           │   Elastic Beanstalk     │
+   │  (CDN + HTTPS/SSL)  │           │   (NestJS API, Node 20) │
+   └──────────┬──────────┘           └────────────┬────────────┘
+              │  /api/* behavior                  │
+              │  proxied to EB origin             │
+   ┌──────────▼──────────┐           ┌────────────▼────────────┐
+   │     S3 Bucket       │           │      EC2 instance       │
+   │  (React SPA dist)   │           │  /var/app/current/data  │
+   └─────────────────────┘           │    tasks.db (SQLite)    │
+                                     └─────────────────────────┘
+```
+
+CloudFront serves the static frontend and proxies `/api/*` requests to the Elastic Beanstalk origin. This means the browser always talks to a single HTTPS domain — no mixed content issues, no CORS configuration needed in production.
+
+> **SQLite note**: works fine for single-instance deployments. If you need horizontal scaling, swap it for RDS PostgreSQL — only the TypeORM driver and connection string need to change.
+
+---
+
+## Project structure
 
 ```
 task-manager/
-├── backend/               # NestJS API
+├── backend/
 │   ├── src/
 │   │   ├── auth/          # JWT strategy, login endpoint
-│   │   ├── tasks/         # Tasks CRUD + DTOs
-│   │   ├── users/         # User entity + service
-│   │   ├── common/        # Guards, interfaces
-│   │   └── database/      # Migrations + seed script
-│   └── .env
-└── frontend/              # React SPA
+│   │   ├── tasks/         # Task CRUD, DTOs, entity
+│   │   ├── users/         # User entity and service
+│   │   └── database/      # Migrations and seed script
+│   ├── .ebextensions/     # Elastic Beanstalk config
+│   ├── .platform/         # Post-deploy hooks (migrate + seed)
+│   └── Procfile
+└── frontend/
     ├── src/
-    │   ├── api/           # Axios client + per-resource modules
+    │   ├── api/           # Axios client and per-resource modules
     │   ├── components/ui/ # Button, Badge, Input, Select, Modal, Spinner
-    │   ├── context/       # AuthContext (login/logout state)
-    │   ├── hooks/         # useTasks (data + mutations)
+    │   ├── context/       # AuthContext, LangContext
+    │   ├── hooks/         # useTasks — queries and mutations
+    │   ├── i18n/          # Translation dictionary (EN / ES)
     │   ├── pages/         # LoginPage, TaskListPage, TaskForm
+    │   ├── test/          # Vitest + React Testing Library tests
     │   ├── types/         # Shared TypeScript types
-    │   └── utils/         # Helpers, style maps, storage wrapper
+    │   └── utils/         # Helpers, style maps, localStorage wrapper
     └── vite.config.ts
 ```
 
-## Getting Started
+---
+
+## Running locally
 
 ### Prerequisites
 
@@ -59,7 +138,7 @@ task-manager/
 cd backend
 cp .env.example .env      # set JWT_SECRET to any long random string
 npm install
-npm run migration:run     # creates users + tasks tables
+npm run migration:run     # creates the users and tasks tables
 npm run seed              # creates 3 demo users
 npm run start:dev         # http://localhost:3000
 ```
@@ -72,33 +151,48 @@ npm install
 npm run dev               # http://localhost:5173
 ```
 
-The Vite dev server proxies all `/api` requests to `http://localhost:3000`, so no CORS config needed in development.
+The Vite dev server proxies all `/api` requests to `http://localhost:3000`, so no CORS configuration is needed during development.
 
-### Demo Credentials
+### Demo credentials
 
-| Name          | Email                       | Password   |
-|---------------|-----------------------------|------------|
-| Alice Johnson | alice@taskmanager.dev       | Alice123!  |
-| Bob Smith     | bob@taskmanager.dev         | Bob123!    |
-| Carol White   | carol@taskmanager.dev       | Carol123!  |
+| Name          | Email                   | Password  |
+|---------------|-------------------------|-----------|
+| Alice Johnson | alice@taskmanager.dev   | Alice123! |
+| Bob Smith     | bob@taskmanager.dev     | Bob123!   |
+| Carol White   | carol@taskmanager.dev   | Carol123! |
 
-## API Reference
+### Running tests
+
+```bash
+cd frontend
+npm test               # run once
+npm run test:watch     # watch mode (re-runs on file save)
+npm run test:coverage  # with coverage report
+```
+
+---
+
+## API reference
 
 All task endpoints require `Authorization: Bearer <token>`.
 
-| Method | Path                        | Description                       |
-|--------|-----------------------------|-----------------------------------|
-| POST   | `/api/auth/login`           | Login — returns `access_token`    |
-| GET    | `/api/tasks`                | List tasks (optional `?status=`)  |
-| POST   | `/api/tasks`                | Create a task                     |
-| PUT    | `/api/tasks/:id`            | Update a task                     |
-| DELETE | `/api/tasks/:id`            | Delete a task                     |
+| Method | Path                  | Description                      |
+|--------|-----------------------|----------------------------------|
+| POST   | `/api/auth/login`     | Login — returns `access_token`   |
+| GET    | `/api/tasks`          | List tasks (optional `?status=`) |
+| POST   | `/api/tasks`          | Create a task                    |
+| PUT    | `/api/tasks/:id`      | Update a task                    |
+| DELETE | `/api/tasks/:id`      | Delete a task                    |
 
 **Login response:**
 ```json
 {
   "access_token": "<jwt>",
-  "user": { "id": "...", "name": "Alice Johnson", "email": "alice@taskmanager.dev" }
+  "user": {
+    "id": "uuid",
+    "name": "Alice Johnson",
+    "email": "alice@taskmanager.dev"
+  }
 }
 ```
 
@@ -111,64 +205,22 @@ All task endpoints require `Authorization: Bearer <token>`.
   "status": "pending | in_progress | completed",
   "priority": "low | medium | high",
   "due_date": "2026-04-30T00:00:00.000Z | null",
+  "owner_id": "uuid",
   "created_at": "...",
-  "updated_at": "...",
-  "owner_id": "uuid"
+  "updated_at": "..."
 }
 ```
 
-## Architecture Notes
-
-### Backend
-
-- **Hexagonal-ish layering**: controllers handle HTTP concerns, services own business logic, TypeORM repositories handle persistence. No logic leaks across layers.
-- **JWT auth**: stateless, HS256, 7-day expiry. The strategy validates the token and attaches the payload to `req.user`.
-- **Migrations over sync**: `synchronize: false` in production config — schema changes go through versioned migration files, not auto-sync.
-- **Per-user isolation**: every task query includes `WHERE owner_id = :userId` — no cross-user data leakage.
-
-### Frontend
-
-- **Context + hook separation**: `AuthContext` owns auth state (user, login, logout). `useTasksQuery` / `useCreateTask` / `useUpdateTask` / `useDeleteTask` own data fetching and mutations via React Query. Pages are purely presentational coordinators.
-- **React Query**: cache with 30 s stale time, optimistic updates on edit/delete with automatic rollback on error, background refetch on window focus.
-- **Path aliases**: `@/` maps to `src/` — no `../../` relative hell.
-- **Tailwind custom colors**: `brand-*` color scale defined in `tailwind.config.js` for consistent branding without hardcoded hex values.
+---
 
 ## Deployment on AWS
-
-### Architecture
-
-```
-                    ┌─────────────────────────────┐
-                    │         Route 53             │
-                    │   (optional custom domain)   │
-                    └────────────┬────────────────-┘
-                                 │
-              ┌──────────────────┴──────────────────┐
-              │                                     │
-   ┌──────────▼──────────┐             ┌────────────▼────────────┐
-   │     CloudFront      │             │   Elastic Beanstalk     │
-   │  (CDN + HTTPS/SSL)  │             │   (NestJS API, Node 20) │
-   └──────────┬──────────┘             └────────────┬────────────┘
-              │                                     │
-   ┌──────────▼──────────┐             ┌────────────▼────────────┐
-   │       S3 Bucket     │             │    EC2 instance         │
-   │   (React SPA dist)  │             │  /var/app/current/data  │
-   └─────────────────────┘             │    tasks.db (SQLite)    │
-                                       └─────────────────────────┘
-```
-
-> **SQLite note**: SQLite works for single-instance deployments. If you need
-> horizontal scaling, replace it with RDS PostgreSQL — the TypeORM config only
-> requires changing the driver and connection string.
-
----
 
 ### Prerequisites
 
 ```bash
 # AWS CLI v2
 brew install awscli
-aws configure   # enter Access Key ID, Secret, region (e.g. us-east-1), output: json
+aws configure   # Access Key ID, Secret, region (us-east-1), output: json
 
 # EB CLI
 pip install awsebcli
@@ -182,31 +234,26 @@ eb --version
 
 ### Backend — Elastic Beanstalk
 
-#### 1. Build the app
+#### 1. Build
 
 ```bash
-cd backend
-npm ci
-npm run build
-# Output: dist/
+cd backend && npm ci && npm run build
 ```
 
 #### 2. Initialise the EB application (first time only)
 
 ```bash
-cd backend
 eb init task-manager --platform "Node.js 20" --region us-east-1
-# When asked "Do you want to set up SSH?": Yes (optional but recommended)
 ```
 
-This creates a `.elasticbeanstalk/config.yml` locally. It is gitignored by default — do not commit it.
+This creates `.elasticbeanstalk/config.yml` locally — it's gitignored, don't commit it.
 
 #### 3. Create the environment
 
 ```bash
 eb create task-manager-prod \
   --instance-type t3.micro \
-  --single                    # single instance (no load balancer) — cheapest option
+  --single
 ```
 
 #### 4. Set environment variables
@@ -218,44 +265,32 @@ eb setenv \
   PORT="8080"
 ```
 
-> Never commit `.env` to the repo. EB environment variables are injected at runtime and encrypted at rest.
-
 #### 5. Deploy
 
 ```bash
 eb deploy task-manager-prod
-```
-
-Or use the helper script (also runs `npm run build` first):
-
-```bash
+# or via the helper script:
 EB_ENV=task-manager-prod ./scripts/deploy-backend.sh
 ```
 
 #### 6. Verify
 
 ```bash
-eb status          # shows environment URL and health
-eb logs            # tail the last 100 lines
-```
+eb status
+eb logs
 
-Test the live endpoint:
-
-```bash
 curl -s -X POST https://<your-eb-url>/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"alice@taskmanager.dev","password":"Alice123!"}'
 ```
 
-#### How `.ebextensions` works
+#### How `.ebextensions` and `.platform` work
 
-The `backend/.ebextensions/` directory contains three config files that EB applies in alphabetical order on every deployment:
-
-| File | Purpose |
-|---|---|
-| `01_node.config` | Pins Node.js to v20, sets `NODE_ENV` and `PORT` |
-| `02_sqlite.config` | Creates `/var/app/current/data/` and sets ownership so the app can write the SQLite file |
-| `03_migrate.config` | Runs `typeorm migration:run` automatically after the new bundle is installed (`leader_only: true` ensures it only runs once on multi-instance setups) |
+| File/Dir | Purpose |
+|----------|---------|
+| `.ebextensions/01_node.config` | Pins Node.js to v20, sets `NODE_ENV` and `PORT` |
+| `.ebextensions/02_sqlite.config` | Creates the data directory and sets write permissions for the SQLite file |
+| `.platform/hooks/postdeploy/01_migrate_and_seed.sh` | Runs migrations and seed after each deployment — using a post-deploy hook ensures the app bundle is fully in place before the script runs |
 
 ---
 
@@ -266,7 +301,6 @@ The `backend/.ebextensions/` directory contains three config files that EB appli
 ```bash
 aws s3 mb s3://task-manager-frontend-prod --region us-east-1
 
-# Block all public access (CloudFront will serve the files, not S3 directly)
 aws s3api put-public-access-block \
   --bucket task-manager-frontend-prod \
   --public-access-block-configuration \
@@ -275,40 +309,25 @@ aws s3api put-public-access-block \
 
 #### 2. Create the CloudFront distribution
 
-Go to **AWS Console → CloudFront → Create distribution** and configure:
+Go to **AWS Console → CloudFront → Create distribution**:
 
 | Setting | Value |
-|---|---|
+|---------|-------|
 | Origin domain | `task-manager-frontend-prod.s3.us-east-1.amazonaws.com` |
-| Origin access | **Origin Access Control (OAC)** — let CloudFront access S3 privately |
+| Origin access | Origin Access Control (OAC) |
 | Viewer protocol policy | Redirect HTTP to HTTPS |
 | Default root object | `index.html` |
-| Custom error response | 403 → `/index.html` with status 200 (required for SPA routing) |
+| Custom error response | 403 → `/index.html` with status 200 (required for SPA client-side routing) |
 
-After creating, copy the **bucket policy** CloudFront generates and apply it to the S3 bucket:
-
-```bash
-aws s3api put-bucket-policy \
-  --bucket task-manager-frontend-prod \
-  --policy file://cloudfront-bucket-policy.json
-```
+Add a second behavior for `/api/*` pointing to the Elastic Beanstalk origin with:
+- Cache policy: CachingDisabled
+- Origin request policy: AllViewerExceptHostHeader (forwards the `Authorization` header)
 
 #### 3. Set the API URL for production
 
-In `frontend/vite.config.ts`, the `/api` proxy only works in development. For production, the built assets need to know the backend URL. Add it as an environment variable:
-
 ```bash
 # frontend/.env.production
-VITE_API_BASE_URL=https://<your-eb-url>
-```
-
-And update `frontend/src/api/http.ts`:
-
-```ts
-export const http = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL ?? '/api',
-  // ...
-})
+VITE_API_BASE_URL=https://<your-cloudfront-domain>
 ```
 
 #### 4. Deploy
@@ -319,22 +338,14 @@ CF_DISTRIBUTION_ID=EXXXXXXXXX \
 ./scripts/deploy-frontend.sh
 ```
 
-The script:
-1. Runs `npm run build`
-2. Syncs `dist/` to S3 with `Cache-Control: immutable` for hashed assets
-3. Sets `Cache-Control: no-cache` on `index.html` specifically (so browsers always fetch the latest entry point)
-4. Creates a CloudFront invalidation for `/*`
+The script builds the app, syncs `dist/` to S3 (`Cache-Control: immutable` on hashed assets, `no-cache` on `index.html`), and invalidates the CloudFront distribution.
 
 #### 5. Verify
 
 ```bash
-# Check invalidation status
 aws cloudfront get-invalidation \
   --distribution-id EXXXXXXXXX \
   --id <invalidation-id>
-
-# App should be live at:
-# https://<cloudfront-domain>.cloudfront.net
 ```
 
 ---
@@ -342,10 +353,10 @@ aws cloudfront get-invalidation \
 ### Re-deploying after changes
 
 ```bash
-# Backend only
+# Backend
 EB_ENV=task-manager-prod ./scripts/deploy-backend.sh
 
-# Frontend only
+# Frontend
 S3_BUCKET=task-manager-frontend-prod \
 CF_DISTRIBUTION_ID=EXXXXXXXXX \
 ./scripts/deploy-frontend.sh
