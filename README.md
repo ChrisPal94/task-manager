@@ -1,5 +1,7 @@
 # Task Manager
 
+> 🌐 [Versión en español](./README.es.md)
+
 A fullstack task management application where each user has their own private workspace to create, organize, and track tasks. Built as a technical assessment to demonstrate production-level decisions across the full stack — from API design to cloud deployment.
 
 ---
