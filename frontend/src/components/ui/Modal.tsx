@@ -43,17 +43,17 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
 
       <div
         className={cn(
-          'relative z-10 w-full sm:max-w-lg bg-white shadow-xl',
+          'relative z-10 w-full sm:max-w-lg bg-white dark:bg-gray-900 shadow-xl',
           'rounded-t-2xl sm:rounded-xl',
           'animate-in fade-in slide-in-from-bottom sm:zoom-in-95 duration-200',
           className,
         )}
       >
-        <div className="flex items-center justify-between border-b px-5 py-4 sm:px-6">
-          <h2 className="text-base font-semibold text-gray-900">{title}</h2>
+        <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-5 py-4 sm:px-6">
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">{title}</h2>
           <button
             onClick={onClose}
-            className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+            className="rounded-md p-1 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
             aria-label="Close modal"
           >
             <svg
