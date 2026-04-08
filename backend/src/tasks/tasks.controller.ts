@@ -8,7 +8,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
-  Put,
+  Patch,
   Query,
   UseGuards,
 } from '@nestjs/common'
@@ -46,7 +46,7 @@ export class TasksController {
     return this.tasksService.create(dto, user.id)
   }
 
-  @Put(':id')
+  @Patch(':id')
   update(
     @CurrentUser() user: AuthenticatedRequest['user'],
     @Param('id', ParseUUIDPipe) id: string,

@@ -1,6 +1,8 @@
 export { Button } from './Button'
 export { Badge } from './Badge'
+export { ConfirmModal } from './ConfirmModal'
 export { Input } from './Input'
+export { LocaleSwitcher } from './LocaleSwitcher'
 export { Select } from './Select'
 export { Modal } from './Modal'
 export { Spinner } from './Spinner'

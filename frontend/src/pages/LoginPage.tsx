@@ -2,17 +2,11 @@ import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { useLang } from '@/context/LangContext'
-import { Button, Input } from '@/components/ui'
-import type { Locale } from '@/i18n/translations'
-
-const LOCALES: { value: Locale; label: string }[] = [
-  { value: 'en', label: 'EN' },
-  { value: 'es', label: 'ES' },
-]
+import { Button, Input, LocaleSwitcher } from '@/components/ui'
 
 export default function LoginPage() {
   const { login, isLoading } = useAuth()
-  const { t, locale, setLocale } = useLang()
+  const { t } = useLang()
   const navigate = useNavigate()
 
   const [email, setEmail] = useState('')
@@ -34,19 +28,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-brand-50 to-slate-100 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="flex justify-end mb-4">
-          <div className="flex rounded-lg border border-gray-200 bg-white overflow-hidden text-sm">
-            {LOCALES.map(({ value, label }) => (
-              <button
-                key={value}
-                onClick={() => setLocale(value)}
-                className={`px-3 py-1.5 font-medium transition-colors ${
-                  locale === value ? 'bg-brand-600 text-white' : 'text-gray-500 hover:bg-gray-50'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          <LocaleSwitcher />
         </div>
 
         <div className="mb-8 text-center">
