@@ -15,6 +15,7 @@ export const translations = {
 
     // Task list
     myTasks: 'My Tasks',
+    allTasks: 'All Tasks',
     newTask: 'New Task',
     noTasksTitle: 'No tasks yet',
     noTasksSubtitle: 'Create your first task to get started',
@@ -26,6 +27,13 @@ export const translations = {
     filterPending: 'Pending',
     filterInProgress: 'In Progress',
     filterCompleted: 'Completed',
+    filterLow: 'Low',
+    filterMedium: 'Medium',
+    filterHigh: 'High',
+
+    // Admin
+    adminBadge: 'Admin',
+    owner: 'Owner',
 
     // Task form
     editTask: 'Edit Task',
@@ -84,6 +92,7 @@ export const translations = {
 
     // Task list
     myTasks: 'Mis tareas',
+    allTasks: 'Todas las tareas',
     newTask: 'Nueva tarea',
     noTasksTitle: 'Sin tareas aún',
     noTasksSubtitle: 'Crea tu primera tarea para empezar',
@@ -96,6 +105,13 @@ export const translations = {
     filterPending: 'Pendiente',
     filterInProgress: 'En progreso',
     filterCompleted: 'Completada',
+    filterLow: 'Baja',
+    filterMedium: 'Media',
+    filterHigh: 'Alta',
+
+    // Admin
+    adminBadge: 'Admin',
+    owner: 'Responsable',
 
     // Task form
     editTask: 'Editar tarea',

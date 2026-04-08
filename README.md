@@ -32,6 +32,10 @@ Once authenticated you see your personal task list. From there you can:
 
 Every user's data is completely isolated — you can only see and manage tasks that belong to your account.
 
+### Admin view
+
+The `admin` account has a read-only view of every task in the system. When an admin logs in they see an **All Tasks** list with an extra **Owner** column showing who each task belongs to. Admins get two rows of filters: the standard status filter and a second row to narrow by priority (*Low*, *Medium*, *High*). Create, edit, and delete actions are not available to admins — their role is strictly observational.
+
 ---
 
 ## Tech stack
@@ -57,7 +61,7 @@ Authentication is stateless: on login the server returns a signed JWT (HS256, 7-
 
 Schema changes go through versioned TypeORM migration files — `synchronize: false` is set in the TypeORM config so the database schema is never modified automatically at runtime.
 
-Every task query includes a `WHERE owner_id = :userId` clause enforced at the service layer, so there's no possibility of cross-user data leakage even if a client sends a forged task ID.
+Every task query includes a `WHERE owner_id = :userId` clause enforced at the service layer, so there's no possibility of cross-user data leakage even if a client sends a forged task ID. Admin users bypass this clause — the service detects `role === 'admin'` and omits the owner filter, performing a `LEFT JOIN` with the users table to attach the owner's name to each task.
 
 ### Frontend
 
@@ -157,11 +161,12 @@ The Vite dev server proxies all `/api` requests to `http://localhost:3000`, so n
 
 ### Demo credentials
 
-| Name   | Email                   | Password   |
-|--------|-------------------------|------------|
-| Mario  | mario@taskmanager.dev   | Mario123!  |
-| Luigi  | luigi@taskmanager.dev   | Luigi123!  |
-| Bowser | bowser@taskmanager.dev  | Bowser123! |
+| Name   | Email                   | Password   | Role  |
+|--------|-------------------------|------------|-------|
+| Mario  | mario@taskmanager.dev   | Mario123!  | user  |
+| Luigi  | luigi@taskmanager.dev   | Luigi123!  | user  |
+| Bowser | bowser@taskmanager.dev  | Bowser123! | user  |
+| Admin  | admin@taskmanager.dev   | Admin123!  | admin |
 
 ### Running tests
 
@@ -178,13 +183,15 @@ npm run test:coverage  # with coverage report
 
 All task endpoints require `Authorization: Bearer <token>`.
 
-| Method | Path                  | Description                      |
-|--------|-----------------------|----------------------------------|
-| POST   | `/api/auth/login`     | Login — returns `access_token`   |
-| GET    | `/api/tasks`          | List tasks (optional `?status=`) |
-| POST   | `/api/tasks`          | Create a task                    |
-| PUT    | `/api/tasks/:id`      | Update a task                    |
-| DELETE | `/api/tasks/:id`      | Delete a task                    |
+| Method | Path                  | Description                                              |
+|--------|-----------------------|----------------------------------------------------------|
+| POST   | `/api/auth/login`     | Login — returns `access_token`                           |
+| GET    | `/api/tasks`          | List tasks (optional `?status=` and/or `?priority=`)     |
+| POST   | `/api/tasks`          | Create a task                                            |
+| PUT    | `/api/tasks/:id`      | Update a task                                            |
+| DELETE | `/api/tasks/:id`      | Delete a task                                            |
+
+> Admins calling `GET /api/tasks` receive all tasks regardless of owner. Regular users always receive only their own tasks.
 
 **Login response:**
 ```json
@@ -193,7 +200,8 @@ All task endpoints require `Authorization: Bearer <token>`.
   "user": {
     "id": "uuid",
     "name": "Mario",
-    "email": "mario@taskmanager.dev"
+    "email": "mario@taskmanager.dev",
+    "role": "user | admin"
   }
 }
 ```
@@ -208,10 +216,13 @@ All task endpoints require `Authorization: Bearer <token>`.
   "priority": "low | medium | high",
   "due_date": "2026-04-30T00:00:00.000Z | null",
   "owner_id": "uuid",
+  "owner": { "id": "uuid", "name": "Mario", "email": "mario@taskmanager.dev" },
   "created_at": "...",
   "updated_at": "..."
 }
 ```
+
+> `owner` is only populated in admin responses. Regular user responses omit it.
 
 ---
 

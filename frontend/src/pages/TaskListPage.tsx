@@ -4,20 +4,26 @@ import { useLang } from '@/context/LangContext'
 import { useTasksQuery, useDeleteTask } from '@/hooks/useTasks'
 import { Badge, Button, ConfirmModal, LocaleSwitcher, Spinner, Modal } from '@/components/ui'
 import { STATUS_STYLES, PRIORITY_STYLES, formatDate, getApiErrorKey } from '@/utils'
-import type { Task, TaskStatus } from '@/types'
+import type { Task, TaskPriority, TaskStatus } from '@/types'
 import TaskForm from './TaskForm'
 
 export default function TaskListPage() {
   const { user, logout } = useAuth()
   const { t } = useLang()
-  const [activeFilter, setActiveFilter] = useState<TaskStatus | 'all'>('all')
+  const isAdmin = user?.role === 'admin'
+
+  const [activeStatus, setActiveStatus] = useState<TaskStatus | 'all'>('all')
+  const [activePriority, setActivePriority] = useState<TaskPriority | 'all'>('all')
 
   const {
     data: tasks = [],
     isLoading,
     isError,
     error,
-  } = useTasksQuery(activeFilter === 'all' ? undefined : activeFilter)
+  } = useTasksQuery(
+    activeStatus === 'all' ? undefined : activeStatus,
+    activePriority === 'all' ? undefined : activePriority,
+  )
 
   const deleteMutation = useDeleteTask()
 
@@ -45,12 +51,22 @@ export default function TaskListPage() {
     })
   }
 
-  const FILTERS = useMemo<{ label: string; value: TaskStatus | 'all' }[]>(
+  const STATUS_FILTERS = useMemo<{ label: string; value: TaskStatus | 'all' }[]>(
     () => [
       { label: t('filterAll'), value: 'all' },
       { label: t('filterPending'), value: 'pending' },
       { label: t('filterInProgress'), value: 'in_progress' },
       { label: t('filterCompleted'), value: 'completed' },
+    ],
+    [t],
+  )
+
+  const PRIORITY_FILTERS = useMemo<{ label: string; value: TaskPriority | 'all' }[]>(
+    () => [
+      { label: t('filterAll'), value: 'all' },
+      { label: t('filterLow'), value: 'low' },
+      { label: t('filterMedium'), value: 'medium' },
+      { label: t('filterHigh'), value: 'high' },
     ],
     [t],
   )
@@ -85,6 +101,11 @@ export default function TaskListPage() {
               T
             </span>
             <span className="font-semibold text-gray-900 truncate">Task Manager</span>
+            {isAdmin && (
+              <span className="hidden sm:inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                {t('adminBadge')}
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <LocaleSwitcher />
@@ -115,39 +136,63 @@ export default function TaskListPage() {
       <main className="mx-auto max-w-5xl px-4 sm:px-6 py-8">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">{t('myTasks')}</h1>
+            <h1 className="text-xl font-bold text-gray-900">
+              {isAdmin ? t('allTasks') : t('myTasks')}
+            </h1>
             <p className="text-sm text-gray-500 mt-0.5">
               {taskCount} {taskWord}
             </p>
           </div>
-          <Button onClick={openCreate}>
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-            {t('newTask')}
-          </Button>
+          {!isAdmin && (
+            <Button onClick={openCreate}>
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              {t('newTask')}
+            </Button>
+          )}
         </div>
 
-        <div className="grid grid-cols-2 gap-2 mb-6 sm:flex sm:flex-wrap">
-          {FILTERS.map((f) => (
-            <button
-              key={f.value}
-              onClick={() => setActiveFilter(f.value)}
-              className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-                activeFilter === f.value
-                  ? 'bg-brand-600 text-white'
-                  : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
+        <div className="space-y-3 mb-6">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+            {STATUS_FILTERS.map((f) => (
+              <button
+                key={f.value}
+                onClick={() => setActiveStatus(f.value)}
+                className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                  activeStatus === f.value
+                    ? 'bg-brand-600 text-white'
+                    : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+
+          {isAdmin && (
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+              {PRIORITY_FILTERS.map((f) => (
+                <button
+                  key={f.value}
+                  onClick={() => setActivePriority(f.value)}
+                  className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                    activePriority === f.value
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {(isError || deleteMutation.isError) && (
@@ -176,7 +221,15 @@ export default function TaskListPage() {
                 className="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4 sm:px-5 flex flex-col gap-3 hover:shadow-md transition-shadow"
               >
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 truncate">{task.title}</p>
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-medium text-gray-900 truncate">{task.title}</p>
+                    {isAdmin && task.owner && (
+                      <span className="shrink-0 text-xs text-gray-400 mt-0.5">
+                        {t('owner')}:{' '}
+                        <span className="font-medium text-gray-600">{task.owner.name}</span>
+                      </span>
+                    )}
+                  </div>
                   {task.description && (
                     <p className="text-sm text-gray-500 mt-0.5 line-clamp-2 sm:truncate">
                       {task.description}
@@ -198,51 +251,58 @@ export default function TaskListPage() {
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2 sm:self-center border-t border-gray-100 pt-3 sm:border-none sm:pt-0">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="flex-1 sm:flex-none"
-                    onClick={() => openEdit(task)}
-                  >
-                    {t('edit')}
-                  </Button>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    className="flex-1 sm:flex-none"
-                    isLoading={
-                      deleteMutation.isPending && deleteMutation.variables === (task.id as string)
-                    }
-                    onClick={() => setConfirmDeleteId(task.id)}
-                  >
-                    {t('delete')}
-                  </Button>
-                </div>
+                {!isAdmin && (
+                  <div className="flex items-center gap-2 sm:self-center border-t border-gray-100 pt-3 sm:border-none sm:pt-0">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="flex-1 sm:flex-none"
+                      onClick={() => openEdit(task)}
+                    >
+                      {t('edit')}
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      className="flex-1 sm:flex-none"
+                      isLoading={
+                        deleteMutation.isPending &&
+                        deleteMutation.variables === (task.id as string)
+                      }
+                      onClick={() => setConfirmDeleteId(task.id)}
+                    >
+                      {t('delete')}
+                    </Button>
+                  </div>
+                )}
               </li>
             ))}
           </ul>
         )}
       </main>
 
-      <Modal
-        isOpen={modalOpen}
-        onClose={closeModal}
-        title={editingTask ? t('editTask') : t('createTask')}
-      >
-        <TaskForm task={editingTask} onClose={closeModal} />
-      </Modal>
+      {!isAdmin && (
+        <>
+          <Modal
+            isOpen={modalOpen}
+            onClose={closeModal}
+            title={editingTask ? t('editTask') : t('createTask')}
+          >
+            <TaskForm task={editingTask} onClose={closeModal} />
+          </Modal>
 
-      <ConfirmModal
-        isOpen={confirmDeleteId !== null}
-        title={t('deleteTask')}
-        message={t('deleteConfirm')}
-        confirmLabel={t('delete')}
-        cancelLabel={t('cancel')}
-        isLoading={deleteMutation.isPending}
-        onConfirm={confirmDelete}
-        onCancel={() => setConfirmDeleteId(null)}
-      />
+          <ConfirmModal
+            isOpen={confirmDeleteId !== null}
+            title={t('deleteTask')}
+            message={t('deleteConfirm')}
+            confirmLabel={t('delete')}
+            cancelLabel={t('cancel')}
+            isLoading={deleteMutation.isPending}
+            onConfirm={confirmDelete}
+            onCancel={() => setConfirmDeleteId(null)}
+          />
+        </>
+      )}
     </div>
   )
 }

@@ -29,12 +29,19 @@ export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Get()
-  @ApiOperation({ summary: 'List all tasks for the current user' })
+  @ApiOperation({ summary: 'List tasks — all tasks for admin, own tasks for regular users' })
   findAll(
     @CurrentUser() user: AuthenticatedRequest['user'],
     @Query() filters: FilterTasksDto,
   ) {
-    return this.tasksService.findAll(user.id, filters.status, filters.page, filters.limit)
+    return this.tasksService.findAll(
+      user.id,
+      user.role,
+      filters.status,
+      filters.priority,
+      filters.page,
+      filters.limit,
+    )
   }
 
   @Get(':id')

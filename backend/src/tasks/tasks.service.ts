@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository } from 'typeorm';
-import { Task, TaskStatus } from './task.entity';
+import { Repository } from 'typeorm';
+import { Task, TaskPriority, TaskStatus } from './task.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import type { UserRole } from '../users/user.entity';
 
 @Injectable()
 export class TasksService {
@@ -13,20 +14,28 @@ export class TasksService {
   ) {}
 
   findAll(
-    ownerId: string,
+    callerId: string,
+    callerRole: UserRole,
     status?: TaskStatus,
+    priority?: TaskPriority,
     page = 1,
     limit = 50,
   ): Promise<Task[]> {
-    const where: FindOptionsWhere<Task> = { owner_id: ownerId };
-    if (status) where.status = status;
+    const qb = this.tasksRepository
+      .createQueryBuilder('task')
+      .leftJoinAndSelect('task.owner', 'owner')
+      .orderBy('task.created_at', 'DESC')
+      .take(limit)
+      .skip((page - 1) * limit);
 
-    return this.tasksRepository.find({
-      where,
-      order: { created_at: 'DESC' },
-      take: limit,
-      skip: (page - 1) * limit,
-    });
+    if (callerRole !== 'admin') {
+      qb.where('task.owner_id = :ownerId', { ownerId: callerId });
+    }
+
+    if (status) qb.andWhere('task.status = :status', { status });
+    if (priority) qb.andWhere('task.priority = :priority', { priority });
+
+    return qb.getMany();
   }
 
   async findOne(id: string, ownerId: string): Promise<Task> {

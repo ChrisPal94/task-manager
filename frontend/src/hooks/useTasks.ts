@@ -1,13 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { tasksApi, tasksKeys } from '@/api'
-import type { CreateTaskPayload, Task, TaskStatus, UpdateTaskPayload } from '@/types'
+import type { CreateTaskPayload, Task, TaskPriority, TaskStatus, UpdateTaskPayload } from '@/types'
 
 // ── Query ─────────────────────────────────────────────────────────────────────
 
-export function useTasksQuery(status?: TaskStatus) {
+export function useTasksQuery(status?: TaskStatus, priority?: TaskPriority) {
   return useQuery({
-    queryKey: tasksKeys.list(status),
-    queryFn: () => tasksApi.getAll(status),
+    queryKey: tasksKeys.list(status, priority),
+    queryFn: () => tasksApi.getAll(status, priority),
   })
 }
 

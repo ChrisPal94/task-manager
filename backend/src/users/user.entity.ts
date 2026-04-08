@@ -9,6 +9,8 @@ import {
 import { Exclude } from 'class-transformer';
 import { Task } from '../tasks/task.entity';
 
+export type UserRole = 'user' | 'admin';
+
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -23,6 +25,9 @@ export class User {
 
   @Column()
   name!: string;
+
+  @Column({ type: 'varchar', default: 'user' })
+  role!: UserRole;
 
   @CreateDateColumn()
   created_at!: Date;

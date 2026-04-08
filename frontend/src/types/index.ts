@@ -1,5 +1,6 @@
 export type TaskStatus = 'pending' | 'in_progress' | 'completed'
 export type TaskPriority = 'low' | 'medium' | 'high'
+export type UserRole = 'user' | 'admin'
 
 export interface Task {
   id: string
@@ -9,6 +10,7 @@ export interface Task {
   priority: TaskPriority
   due_date: string | null
   owner_id: string
+  owner?: { id: string; name: string; email: string }
   created_at: string
   updated_at: string
 }
@@ -17,6 +19,7 @@ export interface User {
   id: string
   name: string
   email: string
+  role: UserRole
 }
 
 export interface AuthResponse {
