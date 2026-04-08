@@ -58,6 +58,17 @@ export const translations = {
     task: 'task',
     tasks: 'tasks',
     unexpectedError: 'An unexpected error occurred',
+
+    // Errors — user-friendly, non-technical
+    errorInvalidCredentials: 'The email or password you entered is incorrect.',
+    errorUnauthorized: 'Your session has expired. Please sign in again.',
+    errorForbidden: 'You do not have permission to perform this action.',
+    errorNotFound: 'The requested resource could not be found.',
+    errorValidation: 'Some fields contain invalid data. Please review your input.',
+    errorTooManyRequests: 'Too many attempts. Please wait a moment and try again.',
+    errorServerError: 'Something went wrong on our end. Please try again later.',
+    errorNetworkError: 'Unable to reach the server. Check your internet connection.',
+    errorUnexpected: 'An unexpected error occurred. Please try again.',
   },
   es: {
     // Login
@@ -117,6 +128,17 @@ export const translations = {
     task: 'tarea',
     tasks: 'tareas',
     unexpectedError: 'Ocurrió un error inesperado',
+
+    // Errors — user-friendly, non-technical
+    errorInvalidCredentials: 'El correo electrónico o la contraseña son incorrectos.',
+    errorUnauthorized: 'Tu sesión ha expirado. Por favor, iniciá sesión nuevamente.',
+    errorForbidden: 'No tenés permisos para realizar esta acción.',
+    errorNotFound: 'El recurso solicitado no pudo encontrarse.',
+    errorValidation: 'Algunos campos tienen datos inválidos. Por favor revisá el formulario.',
+    errorTooManyRequests: 'Demasiados intentos. Esperá un momento e intentá nuevamente.',
+    errorServerError: 'Algo salió mal de nuestro lado. Por favor intentá de nuevo más tarde.',
+    errorNetworkError: 'No se puede contactar al servidor. Revisá tu conexión a internet.',
+    errorUnexpected: 'Ocurrió un error inesperado. Por favor intentá de nuevo.',
   },
 } satisfies Record<Locale, Record<string, string>>
 

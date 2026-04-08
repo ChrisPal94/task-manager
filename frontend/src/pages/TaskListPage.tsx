@@ -3,7 +3,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useLang } from '@/context/LangContext'
 import { useTasksQuery, useDeleteTask } from '@/hooks/useTasks'
 import { Badge, Button, ConfirmModal, LocaleSwitcher, Spinner, Modal } from '@/components/ui'
-import { STATUS_STYLES, PRIORITY_STYLES, formatDate, getApiErrorMessage } from '@/utils'
+import { STATUS_STYLES, PRIORITY_STYLES, formatDate, getApiErrorKey } from '@/utils'
 import type { Task, TaskStatus } from '@/types'
 import TaskForm from './TaskForm'
 
@@ -136,7 +136,7 @@ export default function TaskListPage() {
 
         {(isError || deleteMutation.isError) && (
           <p className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-600">
-            {isError ? getApiErrorMessage(error) : getApiErrorMessage(deleteMutation.error)}
+            {isError ? t(getApiErrorKey(error)) : t(getApiErrorKey(deleteMutation.error))}
           </p>
         )}
 

@@ -23,6 +23,15 @@ vi.mock('@/context/LangContext', () => ({
         password: 'Password',
         signIn: 'Sign in',
         loginFailed: 'Login failed',
+        errorInvalidCredentials: 'The email or password you entered is incorrect.',
+        errorUnauthorized: 'Your session has expired. Please sign in again.',
+        errorForbidden: 'You do not have permission to perform this action.',
+        errorNotFound: 'The requested resource could not be found.',
+        errorValidation: 'Some fields contain invalid data. Please review your input.',
+        errorTooManyRequests: 'Too many attempts. Please wait a moment and try again.',
+        errorServerError: 'Something went wrong on our end. Please try again later.',
+        errorNetworkError: 'Unable to reach the server. Check your internet connection.',
+        errorUnexpected: 'An unexpected error occurred. Please try again.',
       })[key] ?? key,
     locale: 'en',
     setLocale: mockSetLocale,
@@ -86,7 +95,8 @@ describe('LoginPage', () => {
   })
 
   it('shows an error message on failed login', async () => {
-    mockLogin.mockRejectedValue(new Error('Invalid credentials'))
+    const axiosError = { response: { status: 401 } }
+    mockLogin.mockRejectedValue(axiosError)
     renderLogin()
 
     await userEvent.type(screen.getByLabelText('Email'), 'alice@example.com')
@@ -94,7 +104,9 @@ describe('LoginPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Sign in' }))
 
     await waitFor(() => {
-      expect(screen.getByText('Invalid credentials')).toBeInTheDocument()
+      expect(
+        screen.getByText('The email or password you entered is incorrect.'),
+      ).toBeInTheDocument()
     })
   })
 
