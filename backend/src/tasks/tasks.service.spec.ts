@@ -1,4 +1,4 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common'
+import { NotFoundException } from '@nestjs/common'
 import { getRepositoryToken } from '@nestjs/typeorm'
 import { Test, TestingModule } from '@nestjs/testing'
 import { Repository } from 'typeorm'
@@ -63,6 +63,18 @@ describe('TasksService', () => {
       expect(result).toEqual(tasks)
     })
 
+    it('returns an empty array when the owner has no tasks', async () => {
+      repo.find.mockResolvedValue([])
+
+      const result = await service.findAll(OTHER_OWNER_ID)
+
+      expect(result).toEqual([])
+      expect(repo.find).toHaveBeenCalledWith({
+        where: { owner_id: OTHER_OWNER_ID },
+        order: { created_at: 'DESC' },
+      })
+    })
+
     it('filters by status when provided', async () => {
       repo.find.mockResolvedValue([])
 
@@ -73,6 +85,15 @@ describe('TasksService', () => {
         order: { created_at: 'DESC' },
       })
     })
+
+    it('always orders results by created_at DESC', async () => {
+      repo.find.mockResolvedValue([])
+
+      await service.findAll(OWNER_ID)
+
+      const call = repo.find.mock.calls[0][0] as Parameters<typeof repo.find>[0]
+      expect((call as any).order).toEqual({ created_at: 'DESC' })
+    })
   })
 
   describe('findOne', () => {
@@ -82,6 +103,9 @@ describe('TasksService', () => {
 
       const result = await service.findOne(TASK_ID, OWNER_ID)
 
+      expect(repo.findOne).toHaveBeenCalledWith({
+        where: { id: TASK_ID, owner_id: OWNER_ID },
+      })
       expect(result).toEqual(task)
     })
 
@@ -91,10 +115,10 @@ describe('TasksService', () => {
       await expect(service.findOne(TASK_ID, OWNER_ID)).rejects.toThrow(NotFoundException)
     })
 
-    it('throws ForbiddenException when task belongs to a different owner', async () => {
-      repo.findOne.mockResolvedValue(buildTask({ owner_id: OTHER_OWNER_ID }))
+    it('throws NotFoundException when task belongs to a different owner', async () => {
+      repo.findOne.mockResolvedValue(null)
 
-      await expect(service.findOne(TASK_ID, OWNER_ID)).rejects.toThrow(ForbiddenException)
+      await expect(service.findOne(TASK_ID, OTHER_OWNER_ID)).rejects.toThrow(NotFoundException)
     })
   })
 
@@ -149,10 +173,10 @@ describe('TasksService', () => {
       expect(repo.remove).toHaveBeenCalledWith(task)
     })
 
-    it('throws ForbiddenException when removing a task from another owner', async () => {
-      repo.findOne.mockResolvedValue(buildTask({ owner_id: OTHER_OWNER_ID }))
+    it('throws NotFoundException when removing a task that does not belong to the owner', async () => {
+      repo.findOne.mockResolvedValue(null)
 
-      await expect(service.remove(TASK_ID, OWNER_ID)).rejects.toThrow(ForbiddenException)
+      await expect(service.remove(TASK_ID, OTHER_OWNER_ID)).rejects.toThrow(NotFoundException)
     })
   })
 })

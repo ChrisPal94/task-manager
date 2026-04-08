@@ -1,8 +1,4 @@
-import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { Task, TaskStatus } from './task.entity';
@@ -27,10 +23,11 @@ export class TasksService {
   }
 
   async findOne(id: string, ownerId: string): Promise<Task> {
-    const task = await this.tasksRepository.findOne({ where: { id } });
+    const task = await this.tasksRepository.findOne({
+      where: { id, owner_id: ownerId },
+    });
 
     if (!task) throw new NotFoundException('Task not found');
-    if (task.owner_id !== ownerId) throw new ForbiddenException();
 
     return task;
   }

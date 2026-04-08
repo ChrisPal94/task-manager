@@ -1,9 +1,8 @@
+import { NotFoundException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
-import { ExecutionContext } from '@nestjs/common'
 import { Task, TaskPriority, TaskStatus } from './task.entity'
 import { TasksController } from './tasks.controller'
 import { TasksService } from './tasks.service'
-import { ROUTE_ARGS_METADATA } from '@nestjs/common/constants'
 
 const OWNER_ID = 'uuid-mario'
 const TASK_ID = 'uuid-task-1'
@@ -75,6 +74,14 @@ describe('TasksController', () => {
       expect(mockTasksService.findOne).toHaveBeenCalledWith(TASK_ID, OWNER_ID)
       expect(result).toEqual(task)
     })
+
+    it('propagates NotFoundException when task is not found', async () => {
+      mockTasksService.findOne.mockRejectedValue(new NotFoundException())
+
+      await expect(controller.findOne(mockUser, 'nonexistent-id')).rejects.toThrow(
+        NotFoundException,
+      )
+    })
   })
 
   describe('create', () => {
@@ -100,6 +107,14 @@ describe('TasksController', () => {
 
       expect(mockTasksService.update).toHaveBeenCalledWith(TASK_ID, dto, OWNER_ID)
       expect(result).toEqual(updated)
+    })
+
+    it('propagates NotFoundException when updating a non-existent task', async () => {
+      mockTasksService.update.mockRejectedValue(new NotFoundException())
+
+      await expect(
+        controller.update(mockUser, 'nonexistent-id', { title: 'Ghost' } as any),
+      ).rejects.toThrow(NotFoundException)
     })
   })
 
