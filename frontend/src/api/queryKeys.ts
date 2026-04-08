@@ -4,7 +4,6 @@ import type { TaskStatus } from '@/types'
 // invalidating all task queries at once after any mutation.
 export const tasksKeys = {
   all: () => ['tasks'] as const,
-  list: (status?: TaskStatus) =>
-    [...tasksKeys.all(), 'list', status ?? 'all'] as const,
+  list: (status?: TaskStatus) => [...tasksKeys.all(), 'list', status ?? 'all'] as const,
   detail: (id: string) => [...tasksKeys.all(), 'detail', id] as const,
 }

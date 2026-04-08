@@ -18,18 +18,30 @@ export default function TaskListPage() {
   const { t, locale, setLocale } = useLang()
   const [activeFilter, setActiveFilter] = useState<TaskStatus | 'all'>('all')
 
-  const { data: tasks = [], isLoading, isError, error } = useTasksQuery(
-    activeFilter === 'all' ? undefined : activeFilter,
-  )
+  const {
+    data: tasks = [],
+    isLoading,
+    isError,
+    error,
+  } = useTasksQuery(activeFilter === 'all' ? undefined : activeFilter)
 
   const deleteMutation = useDeleteTask()
 
-  const [modalOpen, setModalOpen]     = useState(false)
+  const [modalOpen, setModalOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
 
-  const openCreate = () => { setEditingTask(null); setModalOpen(true) }
-  const openEdit   = (task: Task) => { setEditingTask(task); setModalOpen(true) }
-  const closeModal = () => { setModalOpen(false); setEditingTask(null) }
+  const openCreate = () => {
+    setEditingTask(null)
+    setModalOpen(true)
+  }
+  const openEdit = (task: Task) => {
+    setEditingTask(task)
+    setModalOpen(true)
+  }
+  const closeModal = () => {
+    setModalOpen(false)
+    setEditingTask(null)
+  }
 
   const handleDelete = (id: string) => {
     if (!confirm(t('deleteConfirm'))) return
@@ -37,33 +49,35 @@ export default function TaskListPage() {
   }
 
   const FILTERS: { label: string; value: TaskStatus | 'all' }[] = [
-    { label: t('filterAll'),        value: 'all' },
-    { label: t('filterPending'),    value: 'pending' },
+    { label: t('filterAll'), value: 'all' },
+    { label: t('filterPending'), value: 'pending' },
     { label: t('filterInProgress'), value: 'in_progress' },
-    { label: t('filterCompleted'),  value: 'completed' },
+    { label: t('filterCompleted'), value: 'completed' },
   ]
 
   const STATUS_LABELS = {
-    pending:     t('statusPending'),
+    pending: t('statusPending'),
     in_progress: t('statusInProgress'),
-    completed:   t('statusCompleted'),
+    completed: t('statusCompleted'),
   }
 
   const PRIORITY_LABELS = {
-    low:    t('priorityLow'),
+    low: t('priorityLow'),
     medium: t('priorityMedium'),
-    high:   t('priorityHigh'),
+    high: t('priorityHigh'),
   }
 
   const taskCount = tasks.length
-  const taskWord  = taskCount === 1 ? t('task') : t('tasks')
+  const taskWord = taskCount === 1 ? t('task') : t('tasks')
 
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 flex h-14 items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-brand-600 text-white text-xs font-bold">T</span>
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-brand-600 text-white text-xs font-bold">
+              T
+            </span>
             <span className="font-semibold text-gray-900">Task Manager</span>
           </div>
           <div className="flex items-center gap-3">
@@ -73,9 +87,7 @@ export default function TaskListPage() {
                   key={value}
                   onClick={() => setLocale(value)}
                   className={`px-2.5 py-1 font-medium transition-colors ${
-                    locale === value
-                      ? 'bg-brand-600 text-white'
-                      : 'text-gray-500 hover:bg-gray-50'
+                    locale === value ? 'bg-brand-600 text-white' : 'text-gray-500 hover:bg-gray-50'
                   }`}
                 >
                   {label}
@@ -83,7 +95,9 @@ export default function TaskListPage() {
               ))}
             </div>
             <span className="hidden sm:block text-sm text-gray-500">{user?.name}</span>
-            <Button variant="ghost" size="sm" onClick={logout}>{t('signOut')}</Button>
+            <Button variant="ghost" size="sm" onClick={logout}>
+              {t('signOut')}
+            </Button>
           </div>
         </div>
       </header>
@@ -92,10 +106,18 @@ export default function TaskListPage() {
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <div>
             <h1 className="text-xl font-bold text-gray-900">{t('myTasks')}</h1>
-            <p className="text-sm text-gray-500 mt-0.5">{taskCount} {taskWord}</p>
+            <p className="text-sm text-gray-500 mt-0.5">
+              {taskCount} {taskWord}
+            </p>
           </div>
           <Button onClick={openCreate}>
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
             {t('newTask')}
@@ -120,9 +142,7 @@ export default function TaskListPage() {
 
         {(isError || deleteMutation.isError) && (
           <p className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-600">
-            {isError
-              ? getApiErrorMessage(error)
-              : getApiErrorMessage(deleteMutation.error)}
+            {isError ? getApiErrorMessage(error) : getApiErrorMessage(deleteMutation.error)}
           </p>
         )}
 
@@ -149,15 +169,25 @@ export default function TaskListPage() {
                     <p className="text-sm text-gray-500 mt-0.5 truncate">{task.description}</p>
                   )}
                   <div className="flex flex-wrap items-center gap-2 mt-2">
-                    <Badge label={STATUS_LABELS[task.status]}     className={STATUS_STYLES[task.status]} />
-                    <Badge label={PRIORITY_LABELS[task.priority]} className={PRIORITY_STYLES[task.priority]} />
+                    <Badge
+                      label={STATUS_LABELS[task.status]}
+                      className={STATUS_STYLES[task.status]}
+                    />
+                    <Badge
+                      label={PRIORITY_LABELS[task.priority]}
+                      className={PRIORITY_STYLES[task.priority]}
+                    />
                     {task.due_date && (
-                      <span className="text-xs text-gray-400">{t('due')} {formatDate(task.due_date)}</span>
+                      <span className="text-xs text-gray-400">
+                        {t('due')} {formatDate(task.due_date)}
+                      </span>
                     )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <Button variant="secondary" size="sm" onClick={() => openEdit(task)}>{t('edit')}</Button>
+                  <Button variant="secondary" size="sm" onClick={() => openEdit(task)}>
+                    {t('edit')}
+                  </Button>
                   <Button
                     variant="danger"
                     size="sm"

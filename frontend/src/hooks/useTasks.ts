@@ -1,11 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { tasksApi, tasksKeys } from '@/api'
-import type {
-  CreateTaskPayload,
-  Task,
-  TaskStatus,
-  UpdateTaskPayload
-} from '@/types'
+import type { CreateTaskPayload, Task, TaskStatus, UpdateTaskPayload } from '@/types'
 
 // ── Query ─────────────────────────────────────────────────────────────────────
 
@@ -13,7 +8,7 @@ export function useTasksQuery(status?: TaskStatus) {
   return useQuery({
     queryKey: tasksKeys.list(status),
     queryFn: () => tasksApi.getAll(status),
-    staleTime: 30_000
+    staleTime: 30_000,
   })
 }
 
@@ -26,7 +21,7 @@ export function useCreateTask() {
     mutationFn: (payload: CreateTaskPayload) => tasksApi.create(payload),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: tasksKeys.all() })
-    }
+    },
   })
 }
 
@@ -43,11 +38,11 @@ export function useUpdateTask() {
       await queryClient.cancelQueries({ queryKey: tasksKeys.all() })
 
       const previousData = queryClient.getQueriesData<Task[]>({
-        queryKey: tasksKeys.all()
+        queryKey: tasksKeys.all(),
       })
 
       queryClient.setQueriesData<Task[]>({ queryKey: tasksKeys.all() }, (old) =>
-        old?.map((t) => (t.id === id ? { ...t, ...payload } : t))
+        old?.map((t) => (t.id === id ? { ...t, ...payload } : t)),
       )
 
       return { previousData }
@@ -61,7 +56,7 @@ export function useUpdateTask() {
 
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: tasksKeys.all() })
-    }
+    },
   })
 }
 
@@ -75,11 +70,11 @@ export function useDeleteTask() {
       await queryClient.cancelQueries({ queryKey: tasksKeys.all() })
 
       const previousData = queryClient.getQueriesData<Task[]>({
-        queryKey: tasksKeys.all()
+        queryKey: tasksKeys.all(),
       })
 
       queryClient.setQueriesData<Task[]>({ queryKey: tasksKeys.all() }, (old) =>
-        old?.filter((t) => t.id !== id)
+        old?.filter((t) => t.id !== id),
       )
 
       return { previousData }
@@ -93,6 +88,6 @@ export function useDeleteTask() {
 
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: tasksKeys.all() })
-    }
+    },
   })
 }
