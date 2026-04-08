@@ -192,8 +192,8 @@ Todos los endpoints de tareas requieren `Authorization: Bearer <token>`.
   "access_token": "<jwt>",
   "user": {
     "id": "uuid",
-    "name": "Alice Johnson",
-    "email": "alice@taskmanager.dev"
+    "name": "Mario",
+    "email": "mario@taskmanager.dev"
   }
 }
 ```
@@ -283,7 +283,7 @@ eb logs
 
 curl -s -X POST https://<tu-url-eb>/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"alice@taskmanager.dev","password":"Alice123!"}'
+  -d '{"email":"mario@taskmanager.dev","password":"Mario123!"}'
 ```
 
 #### Cómo funcionan `.ebextensions` y `.platform`
