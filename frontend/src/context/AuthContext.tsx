@@ -1,5 +1,7 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { authApi } from '@/api'
+import { AUTH_EXPIRED_EVENT } from '@/api/http'
 import { storage, getApiErrorMessage } from '@/utils'
 import type { User } from '@/types'
 
@@ -14,8 +16,36 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => storage.getUser<User>())
-  const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate()
+  const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const token = storage.getToken()
+    if (!token) {
+      setIsLoading(false)
+      return
+    }
+    authApi
+      .me()
+      .then((freshUser) => {
+        storage.setUser(freshUser)
+        setUser(freshUser)
+      })
+      .catch(() => {
+        storage.clear()
+      })
+      .finally(() => setIsLoading(false))
+  }, [])
+
+  useEffect(() => {
+    const handleExpired = () => {
+      setUser(null)
+      navigate('/login', { replace: true })
+    }
+    window.addEventListener(AUTH_EXPIRED_EVENT, handleExpired)
+    return () => window.removeEventListener(AUTH_EXPIRED_EVENT, handleExpired)
+  }, [navigate])
 
   const login = useCallback(async (email: string, password: string) => {
     setIsLoading(true)
@@ -25,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       storage.setUser(data.user)
       setUser(data.user)
     } catch (err) {
-      throw new Error(getApiErrorMessage(err))
+      throw err
     } finally {
       setIsLoading(false)
     }
@@ -49,3 +79,5 @@ export function useAuth(): AuthContextValue {
   if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>')
   return ctx
 }
+
+export { getApiErrorMessage }

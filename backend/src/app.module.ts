@@ -24,7 +24,7 @@ import { CreateTasksTable1712300000001 } from './database/migrations/17123000000
         migrations: [CreateUsersTable1712300000000, CreateTasksTable1712300000001],
         migrationsRun: true,
         synchronize: false,
-        logging: false,
+        logging: process.env.NODE_ENV === 'development',
       }),
     }),
     AuthModule,

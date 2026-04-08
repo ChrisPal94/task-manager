@@ -8,7 +8,6 @@ export function useTasksQuery(status?: TaskStatus) {
   return useQuery({
     queryKey: tasksKeys.list(status),
     queryFn: () => tasksApi.getAll(status),
-    staleTime: 30_000,
   })
 }
 
@@ -37,21 +36,29 @@ export function useUpdateTask() {
     onMutate: async ({ id, payload }) => {
       await queryClient.cancelQueries({ queryKey: tasksKeys.all() })
 
-      const previousData = queryClient.getQueriesData<Task[]>({
+      const previousList = queryClient.getQueriesData<Task[]>({
         queryKey: tasksKeys.all(),
       })
+      const previousDetail = queryClient.getQueryData<Task>(tasksKeys.detail(id))
 
       queryClient.setQueriesData<Task[]>({ queryKey: tasksKeys.all() }, (old) =>
         old?.map((t) => (t.id === id ? { ...t, ...payload } : t)),
       )
 
-      return { previousData }
+      if (previousDetail) {
+        queryClient.setQueryData<Task>(tasksKeys.detail(id), { ...previousDetail, ...payload })
+      }
+
+      return { previousList, previousDetail, id }
     },
 
     onError: (_err, _vars, context) => {
-      context?.previousData.forEach(([queryKey, data]) => {
+      context?.previousList.forEach(([queryKey, data]) => {
         queryClient.setQueryData(queryKey, data)
       })
+      if (context?.previousDetail) {
+        queryClient.setQueryData(tasksKeys.detail(context.id), context.previousDetail)
+      }
     },
 
     onSettled: () => {

@@ -81,7 +81,7 @@ describe('Modal', () => {
         <p>content</p>
       </Modal>,
     )
-    fireEvent.click(screen.getByRole('dialog').firstChild as Element)
+    fireEvent.click(screen.getByTestId('modal-backdrop'))
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 

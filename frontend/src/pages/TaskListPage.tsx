@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useLang } from '@/context/LangContext'
 import { useTasksQuery, useDeleteTask } from '@/hooks/useTasks'
@@ -45,24 +45,33 @@ export default function TaskListPage() {
     })
   }
 
-  const FILTERS: { label: string; value: TaskStatus | 'all' }[] = [
-    { label: t('filterAll'), value: 'all' },
-    { label: t('filterPending'), value: 'pending' },
-    { label: t('filterInProgress'), value: 'in_progress' },
-    { label: t('filterCompleted'), value: 'completed' },
-  ]
+  const FILTERS = useMemo<{ label: string; value: TaskStatus | 'all' }[]>(
+    () => [
+      { label: t('filterAll'), value: 'all' },
+      { label: t('filterPending'), value: 'pending' },
+      { label: t('filterInProgress'), value: 'in_progress' },
+      { label: t('filterCompleted'), value: 'completed' },
+    ],
+    [t],
+  )
 
-  const STATUS_LABELS = {
-    pending: t('statusPending'),
-    in_progress: t('statusInProgress'),
-    completed: t('statusCompleted'),
-  }
+  const STATUS_LABELS = useMemo(
+    () => ({
+      pending: t('statusPending'),
+      in_progress: t('statusInProgress'),
+      completed: t('statusCompleted'),
+    }),
+    [t],
+  )
 
-  const PRIORITY_LABELS = {
-    low: t('priorityLow'),
-    medium: t('priorityMedium'),
-    high: t('priorityHigh'),
-  }
+  const PRIORITY_LABELS = useMemo(
+    () => ({
+      low: t('priorityLow'),
+      medium: t('priorityMedium'),
+      high: t('priorityHigh'),
+    }),
+    [t],
+  )
 
   const taskCount = tasks.length
   const taskWord = taskCount === 1 ? t('task') : t('tasks')
@@ -137,7 +146,9 @@ export default function TaskListPage() {
           </div>
         ) : tasks.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="text-4xl mb-3">📋</div>
+            <div className="text-4xl mb-3" role="img" aria-label={t('noTasksTitle')}>
+              📋
+            </div>
             <p className="font-medium text-gray-700">{t('noTasksTitle')}</p>
             <p className="text-sm text-gray-400 mt-1">{t('noTasksSubtitle')}</p>
           </div>
@@ -176,7 +187,7 @@ export default function TaskListPage() {
                   <Button
                     variant="danger"
                     size="sm"
-                    isLoading={deleteMutation.isPending && deleteMutation.variables === task.id}
+                    isLoading={deleteMutation.isPending && deleteMutation.variables === (task.id as string)}
                     onClick={() => setConfirmDeleteId(task.id)}
                   >
                     {t('delete')}

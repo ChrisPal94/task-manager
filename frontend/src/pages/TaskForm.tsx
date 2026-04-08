@@ -54,6 +54,9 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
   ]
 
   const onSubmit = async (values: FormValues) => {
+    createTask.reset()
+    updateTask.reset()
+
     const payload = {
       title: values.title.trim(),
       description: values.description.trim() || undefined,

@@ -11,10 +11,7 @@ describe('formatDate', () => {
   })
 
   it('formats a date-only string correctly regardless of timezone', () => {
-    const result = formatDate('2025-06-15')
-    expect(result).toMatch(/Jun/)
-    expect(result).toMatch(/15/)
-    expect(result).toMatch(/2025/)
+    expect(formatDate('2025-06-15')).toBe('Jun 15, 2025')
   })
 })
 

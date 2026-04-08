@@ -36,6 +36,7 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
     >
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        data-testid="modal-backdrop"
         onClick={onClose}
         aria-hidden="true"
       />
