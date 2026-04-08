@@ -30,7 +30,7 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4"
       role="dialog"
       aria-modal="true"
     >
@@ -43,12 +43,13 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
 
       <div
         className={cn(
-          'relative z-10 w-full max-w-lg rounded-xl bg-white shadow-xl',
-          'animate-in fade-in zoom-in-95 duration-150',
+          'relative z-10 w-full sm:max-w-lg bg-white shadow-xl',
+          'rounded-t-2xl sm:rounded-xl',
+          'animate-in fade-in slide-in-from-bottom sm:zoom-in-95 duration-200',
           className,
         )}
       >
-        <div className="flex items-center justify-between border-b px-6 py-4">
+        <div className="flex items-center justify-between border-b px-5 py-4 sm:px-6">
           <h2 className="text-base font-semibold text-gray-900">{title}</h2>
           <button
             onClick={onClose}
@@ -66,7 +67,7 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
             </svg>
           </button>
         </div>
-        <div className="px-6 py-5">{children}</div>
+        <div className="px-5 py-5 sm:px-6">{children}</div>
       </div>
     </div>
   )

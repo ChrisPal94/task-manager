@@ -79,18 +79,34 @@ export default function TaskListPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 flex h-14 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-brand-600 text-white text-xs font-bold">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 flex h-14 items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white text-xs font-bold">
               T
             </span>
-            <span className="font-semibold text-gray-900">Task Manager</span>
+            <span className="font-semibold text-gray-900 truncate">Task Manager</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 shrink-0">
             <LocaleSwitcher />
-            <span className="hidden sm:block text-sm text-gray-500">{user?.name}</span>
+            <span className="hidden sm:block text-sm text-gray-500 max-w-[120px] truncate">
+              {user?.name}
+            </span>
             <Button variant="ghost" size="sm" onClick={logout}>
-              {t('signOut')}
+              <span className="hidden sm:inline">{t('signOut')}</span>
+              <svg
+                className="h-4 w-4 sm:hidden"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-label={t('signOut')}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"
+                />
+              </svg>
             </Button>
           </div>
         </div>
@@ -118,12 +134,12 @@ export default function TaskListPage() {
           </Button>
         </div>
 
-        <div className="flex gap-2 flex-wrap mb-6">
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap scrollbar-none">
           {FILTERS.map((f) => (
             <button
               key={f.value}
               onClick={() => setActiveFilter(f.value)}
-              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+              className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
                 activeFilter === f.value
                   ? 'bg-brand-600 text-white'
                   : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
@@ -157,12 +173,14 @@ export default function TaskListPage() {
             {tasks.map((task) => (
               <li
                 key={task.id}
-                className="bg-white rounded-xl border border-gray-100 shadow-sm px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3 hover:shadow-md transition-shadow"
+                className="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4 sm:px-5 flex flex-col gap-3 hover:shadow-md transition-shadow"
               >
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-gray-900 truncate">{task.title}</p>
                   {task.description && (
-                    <p className="text-sm text-gray-500 mt-0.5 truncate">{task.description}</p>
+                    <p className="text-sm text-gray-500 mt-0.5 line-clamp-2 sm:truncate">
+                      {task.description}
+                    </p>
                   )}
                   <div className="flex flex-wrap items-center gap-2 mt-2">
                     <Badge
@@ -180,14 +198,22 @@ export default function TaskListPage() {
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <Button variant="secondary" size="sm" onClick={() => openEdit(task)}>
+                <div className="flex items-center gap-2 sm:self-center border-t border-gray-100 pt-3 sm:border-none sm:pt-0">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="flex-1 sm:flex-none"
+                    onClick={() => openEdit(task)}
+                  >
                     {t('edit')}
                   </Button>
                   <Button
                     variant="danger"
                     size="sm"
-                    isLoading={deleteMutation.isPending && deleteMutation.variables === (task.id as string)}
+                    className="flex-1 sm:flex-none"
+                    isLoading={
+                      deleteMutation.isPending && deleteMutation.variables === (task.id as string)
+                    }
                     onClick={() => setConfirmDeleteId(task.id)}
                   >
                     {t('delete')}
