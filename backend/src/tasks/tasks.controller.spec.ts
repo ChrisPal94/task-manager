@@ -1,12 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing'
+import { ExecutionContext } from '@nestjs/common'
 import { Task, TaskPriority, TaskStatus } from './task.entity'
 import { TasksController } from './tasks.controller'
 import { TasksService } from './tasks.service'
+import { ROUTE_ARGS_METADATA } from '@nestjs/common/constants'
 
 const OWNER_ID = 'uuid-mario'
 const TASK_ID = 'uuid-task-1'
 
-const mockReq = { user: { id: OWNER_ID } }
+const mockUser = { id: OWNER_ID, email: 'mario@mushroom.kingdom' }
 
 const buildTask = (overrides: Partial<Task> = {}): Task =>
   ({
@@ -48,7 +50,7 @@ describe('TasksController', () => {
       const tasks = [buildTask()]
       mockTasksService.findAll.mockResolvedValue(tasks)
 
-      const result = await controller.findAll(mockReq as any, {})
+      const result = await controller.findAll(mockUser, {})
 
       expect(mockTasksService.findAll).toHaveBeenCalledWith(OWNER_ID, undefined)
       expect(result).toEqual(tasks)
@@ -57,7 +59,7 @@ describe('TasksController', () => {
     it('forwards the status filter to the service', async () => {
       mockTasksService.findAll.mockResolvedValue([])
 
-      await controller.findAll(mockReq as any, { status: TaskStatus.COMPLETED })
+      await controller.findAll(mockUser, { status: TaskStatus.COMPLETED })
 
       expect(mockTasksService.findAll).toHaveBeenCalledWith(OWNER_ID, TaskStatus.COMPLETED)
     })
@@ -68,7 +70,7 @@ describe('TasksController', () => {
       const task = buildTask()
       mockTasksService.findOne.mockResolvedValue(task)
 
-      const result = await controller.findOne(mockReq as any, TASK_ID)
+      const result = await controller.findOne(mockUser, TASK_ID)
 
       expect(mockTasksService.findOne).toHaveBeenCalledWith(TASK_ID, OWNER_ID)
       expect(result).toEqual(task)
@@ -81,7 +83,7 @@ describe('TasksController', () => {
       const task = buildTask({ title: dto.title })
       mockTasksService.create.mockResolvedValue(task)
 
-      const result = await controller.create(mockReq as any, dto as any)
+      const result = await controller.create(mockUser, dto as any)
 
       expect(mockTasksService.create).toHaveBeenCalledWith(dto, OWNER_ID)
       expect(result).toEqual(task)
@@ -94,7 +96,7 @@ describe('TasksController', () => {
       const updated = buildTask({ title: dto.title })
       mockTasksService.update.mockResolvedValue(updated)
 
-      const result = await controller.update(mockReq as any, TASK_ID, dto as any)
+      const result = await controller.update(mockUser, TASK_ID, dto as any)
 
       expect(mockTasksService.update).toHaveBeenCalledWith(TASK_ID, dto, OWNER_ID)
       expect(result).toEqual(updated)
@@ -105,7 +107,7 @@ describe('TasksController', () => {
     it('delegates to service with the task id and owner id', async () => {
       mockTasksService.remove.mockResolvedValue()
 
-      await controller.remove(mockReq as any, TASK_ID)
+      await controller.remove(mockUser, TASK_ID)
 
       expect(mockTasksService.remove).toHaveBeenCalledWith(TASK_ID, OWNER_ID)
     })

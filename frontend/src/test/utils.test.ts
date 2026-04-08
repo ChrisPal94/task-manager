@@ -10,9 +10,8 @@ describe('formatDate', () => {
     expect(formatDate(undefined)).toBe('—')
   })
 
-  it('formats a valid ISO date string', () => {
-    // Use a datetime string to avoid UTC midnight / local timezone offset issues
-    const result = formatDate('2025-06-15T12:00:00.000Z')
+  it('formats a date-only string correctly regardless of timezone', () => {
+    const result = formatDate('2025-06-15')
     expect(result).toMatch(/Jun/)
     expect(result).toMatch(/15/)
     expect(result).toMatch(/2025/)
