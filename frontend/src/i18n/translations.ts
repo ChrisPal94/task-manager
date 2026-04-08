@@ -18,7 +18,8 @@ export const translations = {
     newTask: 'New Task',
     noTasksTitle: 'No tasks yet',
     noTasksSubtitle: 'Create your first task to get started',
-    deleteConfirm: 'Delete this task?',
+    deleteTask: 'Delete Task',
+    deleteConfirm: 'This action cannot be undone. Are you sure you want to delete this task?',
 
     // Filters
     filterAll: 'All',
@@ -60,7 +61,7 @@ export const translations = {
   },
   es: {
     // Login
-    appTagline: 'Iniciá sesión en tu cuenta',
+    appTagline: 'Inicia sesión en tu cuenta',
     email: 'Correo electrónico',
     emailPlaceholder: 'usuario@ejemplo.com',
     password: 'Contraseña',
@@ -74,8 +75,10 @@ export const translations = {
     myTasks: 'Mis tareas',
     newTask: 'Nueva tarea',
     noTasksTitle: 'Sin tareas aún',
-    noTasksSubtitle: 'Creá tu primera tarea para empezar',
-    deleteConfirm: '¿Eliminar esta tarea?',
+    noTasksSubtitle: 'Crea tu primera tarea para empezar',
+    deleteTask: 'Eliminar tarea',
+    deleteConfirm:
+      'Esta acción no se puede deshacer. ¿Estás seguro de que quieres eliminar esta tarea?',
 
     // Filters
     filterAll: 'Todas',

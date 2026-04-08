@@ -2,20 +2,14 @@ import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useLang } from '@/context/LangContext'
 import { useTasksQuery, useDeleteTask } from '@/hooks/useTasks'
-import { Badge, Button, Spinner, Modal } from '@/components/ui'
+import { Badge, Button, ConfirmModal, LocaleSwitcher, Spinner, Modal } from '@/components/ui'
 import { STATUS_STYLES, PRIORITY_STYLES, formatDate, getApiErrorMessage } from '@/utils'
 import type { Task, TaskStatus } from '@/types'
-import type { Locale } from '@/i18n/translations'
 import TaskForm from './TaskForm'
-
-const LOCALES: { value: Locale; label: string }[] = [
-  { value: 'en', label: 'EN' },
-  { value: 'es', label: 'ES' },
-]
 
 export default function TaskListPage() {
   const { user, logout } = useAuth()
-  const { t, locale, setLocale } = useLang()
+  const { t } = useLang()
   const [activeFilter, setActiveFilter] = useState<TaskStatus | 'all'>('all')
 
   const {
@@ -29,6 +23,7 @@ export default function TaskListPage() {
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   const openCreate = () => {
     setEditingTask(null)
@@ -43,9 +38,11 @@ export default function TaskListPage() {
     setEditingTask(null)
   }
 
-  const handleDelete = (id: string) => {
-    if (!confirm(t('deleteConfirm'))) return
-    deleteMutation.mutate(id)
+  const confirmDelete = () => {
+    if (!confirmDeleteId) return
+    deleteMutation.mutate(confirmDeleteId, {
+      onSettled: () => setConfirmDeleteId(null),
+    })
   }
 
   const FILTERS: { label: string; value: TaskStatus | 'all' }[] = [
@@ -81,19 +78,7 @@ export default function TaskListPage() {
             <span className="font-semibold text-gray-900">Task Manager</span>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs">
-              {LOCALES.map(({ value, label }) => (
-                <button
-                  key={value}
-                  onClick={() => setLocale(value)}
-                  className={`px-2.5 py-1 font-medium transition-colors ${
-                    locale === value ? 'bg-brand-600 text-white' : 'text-gray-500 hover:bg-gray-50'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+            <LocaleSwitcher />
             <span className="hidden sm:block text-sm text-gray-500">{user?.name}</span>
             <Button variant="ghost" size="sm" onClick={logout}>
               {t('signOut')}
@@ -192,7 +177,7 @@ export default function TaskListPage() {
                     variant="danger"
                     size="sm"
                     isLoading={deleteMutation.isPending && deleteMutation.variables === task.id}
-                    onClick={() => handleDelete(task.id)}
+                    onClick={() => setConfirmDeleteId(task.id)}
                   >
                     {t('delete')}
                   </Button>
@@ -210,6 +195,17 @@ export default function TaskListPage() {
       >
         <TaskForm task={editingTask} onClose={closeModal} />
       </Modal>
+
+      <ConfirmModal
+        isOpen={confirmDeleteId !== null}
+        title={t('deleteTask')}
+        message={t('deleteConfirm')}
+        confirmLabel={t('delete')}
+        cancelLabel={t('cancel')}
+        isLoading={deleteMutation.isPending}
+        onConfirm={confirmDelete}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
     </div>
   )
 }

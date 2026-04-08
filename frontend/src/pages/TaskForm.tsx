@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useForm } from 'react-hook-form'
 import { Button, Input, Select } from '@/components/ui'
 import { toDateInputValue, getApiErrorMessage } from '@/utils'
 import { useCreateTask, useUpdateTask } from '@/hooks/useTasks'
@@ -10,21 +10,36 @@ interface TaskFormProps {
   onClose: () => void
 }
 
+interface FormValues {
+  title: string
+  description: string
+  status: TaskStatus
+  priority: TaskPriority
+  due_date: string
+}
+
 export default function TaskForm({ task, onClose }: TaskFormProps) {
   const { t } = useLang()
   const isEditing = !!task
 
-  const [title, setTitle] = useState(task?.title ?? '')
-  const [description, setDescription] = useState(task?.description ?? '')
-  const [status, setStatus] = useState<TaskStatus>(task?.status ?? 'pending')
-  const [priority, setPriority] = useState<TaskPriority>(task?.priority ?? 'medium')
-  const [dueDate, setDueDate] = useState(toDateInputValue(task?.due_date))
-  const [error, setError] = useState<string | null>(null)
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({
+    defaultValues: {
+      title: task?.title ?? '',
+      description: task?.description ?? '',
+      status: task?.status ?? 'pending',
+      priority: task?.priority ?? 'medium',
+      due_date: toDateInputValue(task?.due_date),
+    },
+  })
 
   const createTask = useCreateTask()
   const updateTask = useUpdateTask()
 
-  const isPending = createTask.isPending || updateTask.isPending
+  const isPending = createTask.isPending || updateTask.isPending || isSubmitting
 
   const STATUS_OPTIONS = [
     { value: 'pending', label: t('statusPending') },
@@ -38,38 +53,31 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
     { value: 'high', label: t('priorityHigh') },
   ]
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    if (!title.trim()) {
-      setError(t('titleRequired'))
-      return
-    }
-    setError(null)
-
+  const onSubmit = async (values: FormValues) => {
     const payload = {
-      title: title.trim(),
-      description: description.trim() || undefined,
-      status,
-      priority,
-      due_date: dueDate || undefined,
+      title: values.title.trim(),
+      description: values.description.trim() || undefined,
+      status: values.status,
+      priority: values.priority,
+      due_date: values.due_date || undefined,
     }
 
-    try {
-      if (isEditing) {
-        await updateTask.mutateAsync({ id: task.id, payload })
-      } else {
-        await createTask.mutateAsync(payload)
-      }
-      onClose()
-    } catch (err) {
-      setError(getApiErrorMessage(err))
+    if (isEditing) {
+      await updateTask.mutateAsync({ id: task.id, payload })
+    } else {
+      await createTask.mutateAsync(payload)
     }
+    onClose()
   }
+
+  const serverError =
+    (createTask.error || updateTask.error) &&
+    getApiErrorMessage(createTask.error ?? updateTask.error)
 
   return (
     <form
       onSubmit={(e) => {
-        void handleSubmit(e)
+        void handleSubmit(onSubmit)(e)
       }}
       noValidate
       className="space-y-4"
@@ -77,9 +85,9 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
       <Input
         label={t('titleLabel')}
         placeholder={t('titlePlaceholder')}
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
         autoFocus
+        error={errors.title?.message}
+        {...register('title', { required: t('titleRequired') })}
       />
 
       <div className="flex flex-col gap-1">
@@ -87,37 +95,29 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
         <textarea
           rows={3}
           placeholder={t('descriptionPlaceholder')}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+          {...register('description')}
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <Select
           label={t('statusLabel')}
-          value={status}
           options={STATUS_OPTIONS}
-          onChange={(e) => setStatus(e.target.value as TaskStatus)}
+          {...register('status')}
         />
         <Select
           label={t('priorityLabel')}
-          value={priority}
           options={PRIORITY_OPTIONS}
-          onChange={(e) => setPriority(e.target.value as TaskPriority)}
+          {...register('priority')}
         />
       </div>
 
-      <Input
-        label={t('dueDateLabel')}
-        type="date"
-        value={dueDate}
-        onChange={(e) => setDueDate(e.target.value)}
-      />
+      <Input label={t('dueDateLabel')} type="date" {...register('due_date')} />
 
-      {error && (
+      {serverError && (
         <p className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-600">
-          {error}
+          {serverError}
         </p>
       )}
 
