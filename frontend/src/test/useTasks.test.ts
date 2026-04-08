@@ -15,7 +15,8 @@ vi.mock('@/api', () => ({
   },
   tasksKeys: {
     all: () => ['tasks'] as const,
-    list: (status?: string) => ['tasks', 'list', status ?? 'all'] as const,
+    list: (status?: string, priority?: string) =>
+      ['tasks', 'list', status ?? 'all', priority ?? 'all'] as const,
     detail: (id: string) => ['tasks', 'detail', id] as const,
   },
 }))
@@ -53,7 +54,7 @@ describe('useTasksQuery', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
     expect(result.current.data).toEqual(tasks)
-    expect(tasksApi.getAll).toHaveBeenCalledWith(undefined)
+    expect(tasksApi.getAll).toHaveBeenCalledWith(undefined, undefined)
   })
 
   it('passes the status filter to the API', async () => {
@@ -63,7 +64,7 @@ describe('useTasksQuery', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-    expect(tasksApi.getAll).toHaveBeenCalledWith('completed')
+    expect(tasksApi.getAll).toHaveBeenCalledWith('completed', undefined)
   })
 
   it('surfaces API errors', async () => {

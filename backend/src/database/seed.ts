@@ -17,9 +17,10 @@ const dataSource = new DataSource({
 const SALT_ROUNDS = 10;
 
 const users = [
-  { name: 'Mario',  email: 'mario@taskmanager.dev',  password: 'Mario123!'  },
-  { name: 'Luigi',  email: 'luigi@taskmanager.dev',  password: 'Luigi123!'  },
-  { name: 'Bowser', email: 'bowser@taskmanager.dev', password: 'Bowser123!' },
+  { name: 'Mario',  email: 'mario@taskmanager.dev',  password: 'Mario123!',  role: 'user'  },
+  { name: 'Luigi',  email: 'luigi@taskmanager.dev',  password: 'Luigi123!',  role: 'user'  },
+  { name: 'Bowser', email: 'bowser@taskmanager.dev', password: 'Bowser123!', role: 'user'  },
+  { name: 'Admin',  email: 'admin@taskmanager.dev',  password: 'Admin123!',  role: 'admin' },
 ];
 
 async function seed() {
@@ -41,8 +42,8 @@ async function seed() {
 
     const hashed = await bcrypt.hash(user.password, SALT_ROUNDS);
     await queryRunner.query(
-      `INSERT INTO users (email, password, name) VALUES (?, ?, ?)`,
-      [user.email, hashed, user.name],
+      `INSERT INTO users (email, password, name, role) VALUES (?, ?, ?, ?)`,
+      [user.email, hashed, user.name, user.role],
     );
     console.log(`  ✅ Created ${user.email}`);
   }
@@ -50,7 +51,7 @@ async function seed() {
   await dataSource.destroy();
   console.log('\n✅ Seed complete.\n');
   console.log('Test credentials:');
-  users.forEach((u) => console.log(`  ${u.email}  /  ${u.password}`));
+  users.forEach((u) => console.log(`  ${u.email}  /  ${u.password}  [${u.role}]`));
 }
 
 seed().catch((err) => {
