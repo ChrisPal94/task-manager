@@ -12,6 +12,8 @@ export const translations = {
 
     // Header
     signOut: 'Sign out',
+    lightMode: 'Light',
+    darkMode: 'Dark',
 
     // Task list
     myTasks: 'My Tasks',
@@ -89,6 +91,8 @@ export const translations = {
 
     // Header
     signOut: 'Cerrar sesión',
+    lightMode: 'Claro',
+    darkMode: 'Oscuro',
 
     // Task list
     myTasks: 'Mis tareas',

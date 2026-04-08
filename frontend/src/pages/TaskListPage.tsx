@@ -93,23 +93,23 @@ export default function TaskListPage() {
   const taskWord = taskCount === 1 ? t('task') : t('tasks')
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-950">
+      <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 flex h-14 items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white text-xs font-bold">
               T
             </span>
-            <span className="font-semibold text-gray-900 truncate">Task Manager</span>
+            <span className="font-semibold text-gray-900 dark:text-gray-100 truncate">Task Manager</span>
             {isAdmin && (
-              <span className="hidden sm:inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+              <span className="hidden sm:inline-flex items-center rounded-full bg-amber-100 dark:bg-amber-900/40 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
                 {t('adminBadge')}
               </span>
             )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <LocaleSwitcher />
-            <span className="hidden sm:block text-sm text-gray-500 max-w-[120px] truncate">
+            <span className="hidden sm:block text-sm text-gray-500 dark:text-gray-400 max-w-[120px] truncate">
               {user?.name}
             </span>
             <Button variant="ghost" size="sm" onClick={logout}>
@@ -136,10 +136,10 @@ export default function TaskListPage() {
       <main className="mx-auto max-w-5xl px-4 sm:px-6 py-8">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
               {isAdmin ? t('allTasks') : t('myTasks')}
             </h1>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
               {taskCount} {taskWord}
             </p>
           </div>
@@ -168,7 +168,7 @@ export default function TaskListPage() {
                 className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
                   activeStatus === f.value
                     ? 'bg-brand-600 text-white'
-                    : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
               >
                 {f.label}
@@ -185,7 +185,7 @@ export default function TaskListPage() {
                   className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
                     activePriority === f.value
                       ? 'bg-indigo-600 text-white'
-                      : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
                   }`}
                 >
                   {f.label}
@@ -196,7 +196,7 @@ export default function TaskListPage() {
         </div>
 
         {(isError || deleteMutation.isError) && (
-          <p className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-600">
+          <p className="mb-4 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 px-4 py-2 text-sm text-red-600 dark:text-red-400">
             {isError ? t(getApiErrorKey(error)) : t(getApiErrorKey(deleteMutation.error))}
           </p>
         )}
@@ -210,28 +210,28 @@ export default function TaskListPage() {
             <div className="text-4xl mb-3" role="img" aria-label={t('noTasksTitle')}>
               📋
             </div>
-            <p className="font-medium text-gray-700">{t('noTasksTitle')}</p>
-            <p className="text-sm text-gray-400 mt-1">{t('noTasksSubtitle')}</p>
+            <p className="font-medium text-gray-700 dark:text-gray-300">{t('noTasksTitle')}</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">{t('noTasksSubtitle')}</p>
           </div>
         ) : (
           <ul className="space-y-3">
             {tasks.map((task) => (
               <li
                 key={task.id}
-                className="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-4 sm:px-5 flex flex-col gap-3 hover:shadow-md transition-shadow"
+                className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm px-4 py-4 sm:px-5 flex flex-col gap-3 hover:shadow-md transition-shadow"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
-                    <p className="font-medium text-gray-900 truncate">{task.title}</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-100 truncate">{task.title}</p>
                     {isAdmin && task.owner && (
-                      <span className="shrink-0 text-xs text-gray-400 mt-0.5">
+                      <span className="shrink-0 text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                         {t('owner')}:{' '}
-                        <span className="font-medium text-gray-600">{task.owner.name}</span>
+                        <span className="font-medium text-gray-600 dark:text-gray-300">{task.owner.name}</span>
                       </span>
                     )}
                   </div>
                   {task.description && (
-                    <p className="text-sm text-gray-500 mt-0.5 line-clamp-2 sm:truncate">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2 sm:truncate">
                       {task.description}
                     </p>
                   )}
@@ -245,14 +245,14 @@ export default function TaskListPage() {
                       className={PRIORITY_STYLES[task.priority]}
                     />
                     {task.due_date && (
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-gray-400 dark:text-gray-500">
                         {t('due')} {formatDate(task.due_date)}
                       </span>
                     )}
                   </div>
                 </div>
                 {!isAdmin && (
-                  <div className="flex items-center gap-2 sm:self-center border-t border-gray-100 pt-3 sm:border-none sm:pt-0">
+                  <div className="flex items-center gap-2 sm:self-center border-t border-gray-100 dark:border-gray-700 pt-3 sm:border-none sm:pt-0">
                     <Button
                       variant="secondary"
                       size="sm"

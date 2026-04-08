@@ -26,7 +26,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 to-slate-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-brand-50 to-slate-100 dark:from-gray-950 dark:to-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="flex justify-end mb-4">
           <LocaleSwitcher />
@@ -36,11 +36,11 @@ export default function LoginPage() {
           <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-brand-600 text-white text-xl font-bold mb-3">
             T
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Task Manager</h1>
-          <p className="text-sm text-gray-500 mt-1">{t('appTagline')}</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Task Manager</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('appTagline')}</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 sm:p-8">
           <form
             onSubmit={(e) => {
               void handleSubmit(e)
@@ -69,7 +69,7 @@ export default function LoginPage() {
             />
 
             {errorKey && (
-              <p className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-600">
+              <p className="rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 px-3 py-2 text-sm text-red-600 dark:text-red-400">
                 {t(errorKey)}
               </p>
             )}
