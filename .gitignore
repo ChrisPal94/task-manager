@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Environment variables — NEVER commit these
+.env
+.env.*
+!.env.example
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+
+# EB CLI — contains account-specific config, not for version control
+.elasticbeanstalk/
