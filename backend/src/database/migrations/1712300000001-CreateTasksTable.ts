@@ -25,9 +25,19 @@ export class CreateTasksTable1712300000001 implements MigrationInterface {
     await queryRunner.query(
       `CREATE INDEX IF NOT EXISTS "idx_tasks_status"   ON "tasks"("status")`,
     );
+
+    await queryRunner.query(`
+      CREATE TRIGGER IF NOT EXISTS "trg_tasks_updated_at"
+      AFTER UPDATE ON "tasks"
+      FOR EACH ROW
+      BEGIN
+        UPDATE "tasks" SET "updated_at" = datetime('now') WHERE "id" = OLD."id";
+      END
+    `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`DROP TRIGGER IF EXISTS "trg_tasks_updated_at"`);
     await queryRunner.query(`DROP INDEX IF EXISTS "idx_tasks_status"`);
     await queryRunner.query(`DROP INDEX IF EXISTS "idx_tasks_owner_id"`);
     await queryRunner.query(`DROP TABLE  IF EXISTS "tasks"`);

@@ -14,9 +14,19 @@ export class CreateUsersTable1712300000000 implements MigrationInterface {
         "updated_at" DATETIME NOT NULL DEFAULT (datetime('now'))
       )
     `);
+
+    await queryRunner.query(`
+      CREATE TRIGGER IF NOT EXISTS "trg_users_updated_at"
+      AFTER UPDATE ON "users"
+      FOR EACH ROW
+      BEGIN
+        UPDATE "users" SET "updated_at" = datetime('now') WHERE "id" = OLD."id";
+      END
+    `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`DROP TRIGGER IF EXISTS "trg_users_updated_at"`);
     await queryRunner.query(`DROP TABLE IF EXISTS "users"`);
   }
 }

@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { User } from '../users/user.entity';
 
@@ -57,6 +58,7 @@ export class Task {
   @JoinColumn({ name: 'owner_id' })
   owner!: User;
 
+  @Index()
   @Column()
   owner_id!: string;
 }
