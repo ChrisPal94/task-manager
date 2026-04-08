@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { useLang } from '@/context/LangContext'
 import { Button, Input, LocaleSwitcher } from '@/components/ui'
+import { getApiErrorKey } from '@/utils'
 
 export default function LoginPage() {
   const { login, isLoading } = useAuth()
@@ -11,16 +12,16 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [errorKey, setErrorKey] = useState<ReturnType<typeof getApiErrorKey> | null>(null)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    setError(null)
+    setErrorKey(null)
     try {
       await login(email, password)
       navigate('/tasks', { replace: true })
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('loginFailed'))
+      setErrorKey(getApiErrorKey(err))
     }
   }
 
@@ -67,9 +68,9 @@ export default function LoginPage() {
               autoComplete="current-password"
             />
 
-            {error && (
+            {errorKey && (
               <p className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-600">
-                {error}
+                {t(errorKey)}
               </p>
             )}
 
