@@ -282,8 +282,8 @@ eb setenv \
 
 ```bash
 eb deploy task-manager-prod
-# or via the helper script:
-EB_ENV=task-manager-prod ./scripts/deploy-backend.sh
+# or via the unified script:
+./scripts/deploy.sh backend
 ```
 
 #### 6. Verify
@@ -353,6 +353,8 @@ CF_DISTRIBUTION_ID=EXXXXXXXXX \
 
 The script builds the app, syncs `dist/` to S3 (`Cache-Control: immutable` on hashed assets, `no-cache` on `index.html`), and invalidates the CloudFront distribution.
 
+> You can also use the unified script instead: `./scripts/deploy.sh frontend`
+
 #### 5. Verify
 
 ```bash
@@ -365,12 +367,19 @@ aws cloudfront get-invalidation \
 
 ### Re-deploying after changes
 
-```bash
-# Backend
-EB_ENV=task-manager-prod ./scripts/deploy-backend.sh
+Copy `.env.deploy.example` to `.env.deploy` once and fill in your values:
 
-# Frontend
-S3_BUCKET=task-manager-frontend-prod \
-CF_DISTRIBUTION_ID=EXXXXXXXXX \
-./scripts/deploy-frontend.sh
+```bash
+cp .env.deploy.example .env.deploy
+# edit .env.deploy with your EB_ENV, S3_BUCKET, and CF_DISTRIBUTION_ID
 ```
+
+Then deploy with a single command:
+
+```bash
+./scripts/deploy.sh all        # backend + frontend
+./scripts/deploy.sh backend    # backend only
+./scripts/deploy.sh frontend   # frontend only
+```
+
+The script reads your `.env.deploy` config, builds the target(s), and handles the full deploy — EB for the backend, S3 sync + CloudFront invalidation for the frontend.
