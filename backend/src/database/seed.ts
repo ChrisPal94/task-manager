@@ -17,9 +17,9 @@ const dataSource = new DataSource({
 const SALT_ROUNDS = 10;
 
 const users = [
-  { name: 'Alice Johnson',  email: 'alice@taskmanager.dev',   password: 'Alice123!' },
-  { name: 'Bob Martinez',   email: 'bob@taskmanager.dev',     password: 'Bob123!'   },
-  { name: 'Carol Williams', email: 'carol@taskmanager.dev',   password: 'Carol123!' },
+  { name: 'Mario',  email: 'mario@taskmanager.dev',  password: 'Mario123!'  },
+  { name: 'Luigi',  email: 'luigi@taskmanager.dev',  password: 'Luigi123!'  },
+  { name: 'Bowser', email: 'bowser@taskmanager.dev', password: 'Bowser123!' },
 ];
 
 async function seed() {

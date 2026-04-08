@@ -157,11 +157,11 @@ The Vite dev server proxies all `/api` requests to `http://localhost:3000`, so n
 
 ### Demo credentials
 
-| Name          | Email                   | Password  |
-|---------------|-------------------------|-----------|
-| Alice Johnson | alice@taskmanager.dev   | Alice123! |
-| Bob Smith     | bob@taskmanager.dev     | Bob123!   |
-| Carol White   | carol@taskmanager.dev   | Carol123! |
+| Name   | Email                   | Password   |
+|--------|-------------------------|------------|
+| Mario  | mario@taskmanager.dev   | Mario123!  |
+| Luigi  | luigi@taskmanager.dev   | Luigi123!  |
+| Bowser | bowser@taskmanager.dev  | Bowser123! |
 
 ### Running tests
 

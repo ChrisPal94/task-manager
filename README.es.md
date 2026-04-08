@@ -157,11 +157,11 @@ El servidor de desarrollo de Vite hace proxy de todas las solicitudes `/api` a `
 
 ### Credenciales de demo
 
-| Nombre        | Email                   | Contraseña |
-|---------------|-------------------------|------------|
-| Alice Johnson | alice@taskmanager.dev   | Alice123!  |
-| Bob Smith     | bob@taskmanager.dev     | Bob123!    |
-| Carol White   | carol@taskmanager.dev   | Carol123!  |
+| Nombre | Email                   | Contraseña  |
+|--------|-------------------------|-------------|
+| Mario  | mario@taskmanager.dev   | Mario123!   |
+| Luigi  | luigi@taskmanager.dev   | Luigi123!   |
+| Bowser | bowser@taskmanager.dev  | Bowser123!  |
 
 ### Ejecutar tests
 
