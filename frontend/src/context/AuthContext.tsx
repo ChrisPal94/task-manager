@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { authApi } from '@/api'
 import { AUTH_EXPIRED_EVENT } from '@/api/http'
 import { storage, getApiErrorMessage } from '@/utils'
@@ -17,6 +18,7 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -40,12 +42,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const handleExpired = () => {
+      queryClient.clear()
       setUser(null)
       navigate('/login', { replace: true })
     }
     window.addEventListener(AUTH_EXPIRED_EVENT, handleExpired)
     return () => window.removeEventListener(AUTH_EXPIRED_EVENT, handleExpired)
-  }, [navigate])
+  }, [navigate, queryClient])
 
   const login = useCallback(async (email: string, password: string) => {
     setIsLoading(true)
@@ -63,8 +66,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(() => {
     storage.clear()
+    queryClient.clear()
     setUser(null)
-  }, [])
+  }, [queryClient])
 
   const value = useMemo<AuthContextValue>(
     () => ({ user, isAuthenticated: !!user, isLoading, login, logout }),
