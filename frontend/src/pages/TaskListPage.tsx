@@ -134,12 +134,12 @@ export default function TaskListPage() {
           </Button>
         </div>
 
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap scrollbar-none">
+        <div className="grid grid-cols-2 gap-2 mb-6 sm:flex sm:flex-wrap">
           {FILTERS.map((f) => (
             <button
               key={f.value}
               onClick={() => setActiveFilter(f.value)}
-              className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+              className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
                 activeFilter === f.value
                   ? 'bg-brand-600 text-white'
                   : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
